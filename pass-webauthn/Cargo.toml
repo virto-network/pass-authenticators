@@ -22,6 +22,7 @@ frame-system.workspace = true
 futures.workspace = true
 pallet-balances.workspace = true
 pallet-pass.workspace = true
+pallet-scheduler.workspace = true
 passkey-authenticator.workspace = true
 passkey-client.workspace = true
 passkey-types.workspace = true
@@ -37,6 +38,7 @@ runtime-benchmarks = [
   "frame-system/runtime-benchmarks",
   "pallet-balances/runtime-benchmarks",
   "pallet-pass/runtime-benchmarks",
+  "pallet-scheduler/runtime-benchmarks",
 ]
 std = [
   "base64/std",
@@ -47,6 +49,7 @@ std = [
   "log/std",
   "pallet-balances/std",
   "pallet-pass/std",
+  "pallet-scheduler/std",
   "scale-info/std",
   "sp-io/std",
   "traits-authn/std",
@@ -58,4 +61,5 @@ try-runtime = [
   "frame-system/try-runtime",
   "pallet-balances/try-runtime",
   "pallet-pass/try-runtime",
+  "pallet-scheduler/try-runtime",
 ]

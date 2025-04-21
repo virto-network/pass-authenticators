@@ -1,12 +1,13 @@
 //! Test environment for pass webauthn.
 
+use frame_support::traits::{ConstU32, EqualPrivilegeOnly};
 use frame_support::{
     assert_noop, assert_ok, derive_impl, parameter_types,
     sp_runtime::{str_array as s, traits::Hash},
     traits::ConstU64,
     PalletId,
 };
-use frame_system::{pallet_prelude::BlockNumberFor, Config, EnsureRootWithSuccess};
+use frame_system::{pallet_prelude::BlockNumberFor, Config, EnsureRoot, EnsureRootWithSuccess};
 use traits_authn::{util::AuthorityFromPalletId, Challenger, HashedUserId};
 
 use crate::Authenticator;
@@ -32,6 +33,8 @@ pub mod runtime {
     #[runtime::pallet_index(0)]
     pub type System = frame_system;
     #[runtime::pallet_index(1)]
+    pub type Scheduler = pallet_scheduler;
+    #[runtime::pallet_index(2)]
     pub type Pass = pallet_pass;
 
     #[runtime::pallet_index(10)]
@@ -39,10 +42,10 @@ pub mod runtime {
 }
 
 pub type Block = frame_system::mocking::MockBlock<Test>;
-pub type AccountId = <Test as frame_system::Config>::AccountId;
+pub type AccountId = <Test as Config>::AccountId;
 
 #[derive_impl(frame_system::config_preludes::TestDefaultConfig as frame_system::DefaultConfig)]
-impl frame_system::Config for Test {
+impl Config for Test {
     type BaseCallFilter = frame_support::traits::Everything;
     type Block = Block;
     type AccountData = pallet_balances::AccountData<AccountId>;
@@ -52,6 +55,23 @@ impl frame_system::Config for Test {
 )]
 impl pallet_balances::Config for Test {
     type AccountStore = System;
+}
+
+parameter_types! {
+    pub MaxWeight: frame_support::weights::Weight = frame_support::weights::Weight::MAX;
+}
+
+impl pallet_scheduler::Config for Test {
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeOrigin = RuntimeOrigin;
+    type PalletsOrigin = OriginCaller;
+    type RuntimeCall = RuntimeCall;
+    type MaximumWeight = MaxWeight;
+    type ScheduleOrigin = EnsureRoot<AccountId>;
+    type OriginPrivilegeCmp = EqualPrivilegeOnly;
+    type MaxScheduledPerBlock = ConstU32<256>;
+    type WeightInfo = ();
+    type Preimages = ();
 }
 
 parameter_types! {
@@ -75,12 +95,13 @@ impl pallet_pass::Config for Test {
     type RuntimeEvent = RuntimeEvent;
     type RuntimeCall = RuntimeCall;
     type Currency = Balances;
+    type WeightInfo = ();
     type Authenticator = Authenticator<BlockChallenger, AuthorityId>;
     type PalletsOrigin = OriginCaller;
     type PalletId = PassPalletId;
     type MaxSessionDuration = ConstU64<10>;
     type RegisterOrigin = EnsureRootWithSuccess<Self::AccountId, NeverPays>;
-    type WeightInfo = ();
+    type Scheduler = Scheduler;
     #[cfg(feature = "runtime-benchmarks")]
     type BenchmarkHelper = Helper;
 }

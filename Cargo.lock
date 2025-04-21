@@ -2118,6 +2118,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-scheduler"
+version = "39.0.0"
+source = "git+https://github.com/virto-network/polkadot-sdk?branch=release-virto-stable2409#d13cf291bef64b5ab713ed864df18ce763a799fc"
+dependencies = [
+ "docify",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-weights",
+]
+
+[[package]]
 name = "parity-bip39"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2200,6 +2217,7 @@ dependencies = [
  "futures",
  "log",
  "pallet-balances",
+ "pallet-scheduler",
  "parity-scale-codec",
  "passkey-authenticator",
  "passkey-client",

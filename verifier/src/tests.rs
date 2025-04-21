@@ -106,15 +106,14 @@ fn test_verify_webauthn_response_with_invalid_signature() {
     tampered_signature_der[0] ^= 0xFF; // Flip some bits
 
     // Step 8: Verify the signature (should fail)
-    if let Ok(()) = webauthn_verify(
-        authenticator_data,
-        client_data_json,
-        &tampered_signature_der,
-        public_key_der.as_slice(),
-    ) {
-        assert!(
-            false,
-            "The signature verification should fail with an invalid signature."
-        );
-    }
+    assert!(
+        webauthn_verify(
+            authenticator_data,
+            client_data_json,
+            &tampered_signature_der,
+            public_key_der.as_slice(),
+        )
+        .is_err(),
+        "The signature verification should fail with an invalid signature."
+    );
 }
