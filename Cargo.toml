@@ -8,22 +8,22 @@ repository = "https://github.com/virto-network/webauthn"
 [workspace.dependencies]
 # WebAuthN Verifier
 base64 = { package = "simple-base64", version = "0.23.2", default-features = false }
-coset = { version = "0.3.0", default-features = false }
+coset = { version = "0.3.8", default-features = false }
 futures = { version = "0.3.31", default-features = false, features = [
   "executor",
 ] }
-log = { version = "0.4.22", default-features = false }
+log = { version = "0.4.27", default-features = false }
 p256 = { version = "0.13.2", default-features = false }
-passkey-authenticator = { version = "0.3.0", default-features = false, features = [
+passkey-authenticator = { version = "0.4.0", default-features = false, features = [
   "testable",
 ] }
-passkey-client = { version = "0.3.0", default-features = false, features = [
+passkey-client = { version = "0.4.0", default-features = false, features = [
   "testable",
 ] }
-passkey-types = { version = "0.3.0", default-features = false, features = [
+passkey-types = { version = "0.4.0", default-features = false, features = [
   "testable",
 ] }
-public-suffix = "0.1"
+public-suffix = "0.1.2"
 rand = "0.8.5"
 sha2 = { version = "0.10.8", default-features = false }
 url = { git = "https://github.com/servo/rust-url", default-features = false }
@@ -33,14 +33,13 @@ url-evil = { package = "url", version = "2.5.2", default-features = false }
 codec = { package = "parity-scale-codec", version = "3.6.12", default-features = false, features = [
   "derive",
 ] }
-scale-info = { version = "2.11.3", default-features = false, features = [
+scale-info = { version = "2.11.6", default-features = false, features = [
   "derive",
 ] }
 frame-support = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409", default-features = false }
 frame-system = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409", default-features = false }
 pallet-balances = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409", default-features = false }
 sp-io = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409", default-features = false }
-sp-runtime = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409", default-features = false }
 
 # FRAME Contrib
 traits-authn = { git = "https://github.com/virto-network/frame-contrib", package = "fc-traits-authn", default-features = false }
@@ -48,7 +47,6 @@ pallet-pass = { git = "https://github.com/virto-network/frame-contrib", package 
 
 # Local Crates
 verifier = { path = "verifier", default-features = false }
-pass-webauthn = { path = "pass-webauthn", default-features = false }
 
 [workspace]
 members = ["pass-webauthn", "verifier"]
