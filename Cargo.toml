@@ -36,11 +36,11 @@ codec = { package = "parity-scale-codec", version = "3.6.12", default-features =
 scale-info = { version = "2.11.6", default-features = false, features = [
   "derive",
 ] }
-frame-support = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409", default-features = false }
-frame-system = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409", default-features = false }
-pallet-balances = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409", default-features = false }
-pallet-scheduler = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409", default-features = false }
-sp-io = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409", default-features = false }
+frame-support = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6", default-features = false }
+frame-system = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6", default-features = false }
+pallet-balances = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6", default-features = false }
+pallet-scheduler = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6", default-features = false }
+sp-io = { git = "https://github.com/virto-network/polkadot-sdk", branch = "release-virto-stable2409-6", default-features = false }
 
 # FRAME Contrib
 traits-authn = { git = "https://github.com/virto-network/frame-contrib", package = "fc-traits-authn", default-features = false }
