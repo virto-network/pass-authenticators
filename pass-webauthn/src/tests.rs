@@ -1,13 +1,11 @@
 //! Test environment for pass webauthn.
 
-use frame_support::traits::{ConstU32, EqualPrivilegeOnly};
-use frame_support::{
-    assert_noop, assert_ok, derive_impl, parameter_types,
-    sp_runtime::{str_array as s, traits::Hash},
-    traits::ConstU64,
-    PalletId,
+use frame::{
+    deps::sp_runtime::str_array as s,
+    hashing,
+    testing_prelude::*,
+    traits::{ConstU32, EqualPrivilegeOnly},
 };
-use frame_system::{pallet_prelude::BlockNumberFor, Config, EnsureRoot, EnsureRootWithSuccess};
 use traits_authn::{util::AuthorityFromPalletId, Challenger, HashedUserId};
 
 use crate::Authenticator;
@@ -16,7 +14,7 @@ mod authenticator_client;
 
 use authenticator_client::*;
 
-#[frame_support::runtime]
+#[frame_construct_runtime]
 pub mod runtime {
     #[runtime::runtime]
     #[runtime::derive(
@@ -42,23 +40,21 @@ pub mod runtime {
 }
 
 pub type Block = frame_system::mocking::MockBlock<Test>;
-pub type AccountId = <Test as Config>::AccountId;
+pub type AccountId = <Test as frame_system::Config>::AccountId;
 
-#[derive_impl(frame_system::config_preludes::TestDefaultConfig as frame_system::DefaultConfig)]
-impl Config for Test {
-    type BaseCallFilter = frame_support::traits::Everything;
+#[derive_impl(frame_system::config_preludes::TestDefaultConfig)]
+impl frame_system::Config for Test {
     type Block = Block;
     type AccountData = pallet_balances::AccountData<AccountId>;
 }
 
-#[derive_impl(pallet_balances::config_preludes::TestDefaultConfig as pallet_balances::DefaultConfig
-)]
+#[derive_impl(pallet_balances::config_preludes::TestDefaultConfig)]
 impl pallet_balances::Config for Test {
     type AccountStore = System;
 }
 
 parameter_types! {
-    pub MaxWeight: frame_support::weights::Weight = frame_support::weights::Weight::MAX;
+    pub MaxWeight: weights::Weight = weights::Weight::MAX;
 }
 
 impl pallet_scheduler::Config for Test {
@@ -72,6 +68,7 @@ impl pallet_scheduler::Config for Test {
     type MaxScheduledPerBlock = ConstU32<256>;
     type WeightInfo = ();
     type Preimages = ();
+    type BlockNumberProvider = System;
 }
 
 parameter_types! {
@@ -87,7 +84,7 @@ impl Challenger for BlockChallenger {
     type Context = BlockNumberFor<Test>;
 
     fn generate(ctx: &Self::Context) -> traits_authn::Challenge {
-        <Test as Config>::Hashing::hash(&ctx.to_le_bytes()).0
+        <Test as frame_system::Config>::Hashing::hash(&ctx.to_le_bytes()).0
     }
 }
 
@@ -107,7 +104,7 @@ impl pallet_pass::Config for Test {
 }
 
 #[cfg(feature = "runtime-benchmarks")]
-use sp_io::hashing::blake2_256;
+use hashing::blake2_256;
 #[cfg(feature = "runtime-benchmarks")]
 pub struct Helper;
 #[cfg(feature = "runtime-benchmarks")]
@@ -138,7 +135,7 @@ impl pallet_pass::BenchmarkHelper<Test> for Helper {
     }
 }
 
-struct TestExt(pub sp_io::TestExternalities, pub WebAuthnClient);
+struct TestExt(pub TestExternalities, pub WebAuthnClient);
 impl TestExt {
     pub fn execute_with<R>(&mut self, execute: impl FnOnce(&mut WebAuthnClient) -> R) -> R {
         self.0.execute_with(|| execute(&mut self.1))
@@ -146,7 +143,7 @@ impl TestExt {
 }
 
 fn new_test_ext(times: usize) -> TestExt {
-    let mut t = sp_io::TestExternalities::default();
+    let mut t = TestExternalities::default();
     t.execute_with(|| {
         System::set_block_number(1);
     });

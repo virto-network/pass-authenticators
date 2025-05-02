@@ -5,7 +5,7 @@ where
     Cx: Parameter,
 {
     fn challenge(&self) -> Challenge {
-        find_challenge_from_client_data(self.client_data.clone()).unwrap_or_default()
+        helpers::find_challenge_from_client_data(self.client_data.clone()).unwrap_or_default()
     }
 }
 

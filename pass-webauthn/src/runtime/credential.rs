@@ -3,7 +3,7 @@ use super::*;
 use traits_authn::{util::VerifyCredential, Challenger};
 use verifier::webauthn_verify;
 
-use crate::{CxOf, Device};
+use super::{CxOf, Device};
 
 #[cfg(any(feature = "runtime", test))]
 impl<Ch, A> From<Attestation<CxOf<Ch>>> for Device<Ch, A>

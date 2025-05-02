@@ -1,5 +1,7 @@
+use super::*;
+
 use codec::Decode;
-use frame_support::sp_runtime::traits::TrailingZeroInput;
+use frame::deps::sp_runtime::traits::TrailingZeroInput;
 use frame_system::pallet_prelude::BlockNumberFor;
 use futures::executor::block_on;
 
@@ -7,7 +9,7 @@ use passkey_authenticator::{Authenticator, MockUserValidationMethod};
 use passkey_client::{Client, DefaultClientData};
 use passkey_types::{ctap2::Aaguid, webauthn::*, Bytes, Passkey};
 
-use sp_io::hashing::blake2_256;
+use hashing::blake2_256;
 use traits_authn::{AuthorityId, Challenger, HashedUserId};
 use url_evil::Url;
 

@@ -1,9 +1,6 @@
-use codec::Decode;
-use frame_support::sp_runtime::traits::TrailingZeroInput;
-use scale_info::prelude::{string::String, vec::Vec};
+use super::*;
 
-use traits_authn::Challenge;
-
+use alloc::string::String;
 use base64::prelude::BASE64_URL_SAFE_NO_PAD;
 
 pub fn find_challenge_from_client_data(client_data: Vec<u8>) -> Option<Challenge> {
@@ -28,5 +25,5 @@ where
         .map(|v| v.trim_matches(|c: char| c.eq(&' ') || c.eq(&'"')))
         .and_then(map)?;
 
-    Decode::decode(&mut TrailingZeroInput::new(value.as_ref())).ok()
+    Decode::decode(&mut value.as_ref()).ok()
 }
