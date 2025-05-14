@@ -6,7 +6,7 @@ use frame::{
     testing_prelude::*,
     traits::{ConstU32, EqualPrivilegeOnly},
 };
-use traits_authn::{util::AuthorityFromPalletId, Challenger, HashedUserId};
+use traits_authn::{util::AuthorityFromPalletId, Challenger, ExtrinsicContext, HashedUserId};
 
 use crate::Authenticator;
 
@@ -83,53 +83,73 @@ pub struct BlockChallenger;
 impl Challenger for BlockChallenger {
     type Context = BlockNumberFor<Test>;
 
-    fn generate(ctx: &Self::Context) -> traits_authn::Challenge {
-        <Test as frame_system::Config>::Hashing::hash(&ctx.to_le_bytes()).0
+    fn generate(ctx: &Self::Context, xtc: &impl ExtrinsicContext) -> traits_authn::Challenge {
+        <Test as frame_system::Config>::Hashing::hash(&((ctx, xtc.as_ref()).encode())).0
+    }
+}
+
+pub struct SumAddressGenerator;
+impl AddressGenerator<Test, ()> for SumAddressGenerator {
+    fn generate_address(id: HashedUserId) -> AccountId {
+        id.iter()
+            .map(|b| *b as u64)
+            .reduce(Saturating::saturating_add)
+            .unwrap()
     }
 }
 
 impl pallet_pass::Config for Test {
     type RuntimeEvent = RuntimeEvent;
-    type RuntimeCall = RuntimeCall;
-    type Currency = Balances;
-    type WeightInfo = ();
-    type Authenticator = Authenticator<BlockChallenger, AuthorityId>;
     type PalletsOrigin = OriginCaller;
+    type RuntimeCall = RuntimeCall;
+    type WeightInfo = ();
+    type RegisterOrigin = EnsureRootWithSuccess<Self::AccountId, ConstU64<0>>;
+    type AddressGenerator = SumAddressGenerator;
+    type Balances = Balances;
+    type Authenticator = Authenticator<BlockChallenger, AuthorityId>;
+    type Scheduler = Scheduler;
+    type RegistrarConsideration = ();
+    type DeviceConsideration = ();
+    type SessionKeyConsideration = ();
     type PalletId = PassPalletId;
     type MaxSessionDuration = ConstU64<10>;
-    type RegisterOrigin = EnsureRootWithSuccess<Self::AccountId, NeverPays>;
-    type Scheduler = Scheduler;
     #[cfg(feature = "runtime-benchmarks")]
     type BenchmarkHelper = Helper;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
 use hashing::blake2_256;
+use pallet_pass::AddressGenerator;
+
 #[cfg(feature = "runtime-benchmarks")]
 pub struct Helper;
 #[cfg(feature = "runtime-benchmarks")]
 impl pallet_pass::BenchmarkHelper<Test> for Helper {
-    fn register_origin() -> frame_system::pallet_prelude::OriginFor<Test> {
-        RuntimeOrigin::root()
-    }
-
-    fn device_attestation(_: traits_authn::DeviceId) -> pallet_pass::DeviceAttestationOf<Test, ()> {
+    fn device_attestation(
+        _: traits_authn::DeviceId,
+        xtc: &impl ExtrinsicContext,
+    ) -> pallet_pass::DeviceAttestationOf<Test, ()> {
         WebAuthnClient::new("https://pass_web.pass.int", 1)
             .attestation(
                 blake2_256(b"USER_ID"),
                 System::block_number(),
+                xtc,
                 AuthorityId::get(),
             )
             .1
     }
 
-    fn credential(user_id: HashedUserId) -> pallet_pass::CredentialOf<Test, ()> {
+    fn credential(
+        user_id: HashedUserId,
+        xtc: &impl ExtrinsicContext,
+    ) -> pallet_pass::CredentialOf<Test, ()> {
         let mut client = WebAuthnClient::new("https://helper.pass.int", 2);
         let (credential_id, _) =
-            client.attestation(user_id, System::block_number(), AuthorityId::get());
+            client.attestation(user_id, System::block_number(), xtc, AuthorityId::get());
         client.assertion(
             credential_id.as_slice(),
             System::block_number(),
+            xtc,
             AuthorityId::get(),
         )
     }
@@ -161,7 +181,7 @@ mod attestation {
     fn registration_fails_if_attestation_is_invalid() {
         new_test_ext(1).execute_with(|client| {
             let (_, mut attestation) =
-                client.attestation(USER, System::block_number(), AuthorityId::get());
+                client.attestation(USER, System::block_number(), &[], AuthorityId::get());
 
             // Alters "challenge", so this will fail
             attestation.client_data = String::from_utf8(attestation.client_data)
@@ -187,7 +207,7 @@ mod attestation {
                 RuntimeOrigin::root(),
                 USER,
                 client
-                    .attestation(USER, System::block_number(), AuthorityId::get())
+                    .attestation(USER, System::block_number(), &[], AuthorityId::get())
                     .1
             ));
         })
@@ -196,14 +216,14 @@ mod attestation {
 
 mod assertion {
     use traits_authn::DeviceChallengeResponse;
-
+    use crate::tests::sp_api_hidden_includes_construct_runtime::hidden_include::sp_runtime::traits::TxBaseImplication;
     use super::*;
 
     #[test]
     fn authentication_fails_if_credentials_are_invalid() {
         new_test_ext(2).execute_with(|client| {
             let (credential_id, attestation) =
-                client.attestation(USER, System::block_number(), AuthorityId::get());
+                client.attestation(USER, System::block_number(), &[], AuthorityId::get());
 
             assert_ok!(Pass::register(
                 RuntimeOrigin::root(),
@@ -211,18 +231,29 @@ mod assertion {
                 attestation.clone()
             ));
 
-            let mut assertion =
-                client.assertion(credential_id, System::block_number(), AuthorityId::get());
-            assertion.signature = [assertion.signature, b"Whoops".to_vec()].concat();
+            let assertion = client.assertion(
+                credential_id,
+                System::block_number(),
+                &[],
+                AuthorityId::get(),
+            );
+
+            let ext =
+                pallet_pass::PassAuthenticate::<Test>::from(*attestation.device_id(), assertion);
+
+            let call: RuntimeCall = frame_system::Call::remark { remark: vec![] }.into();
 
             assert_noop!(
-                Pass::authenticate(
-                    RuntimeOrigin::signed(1),
-                    *(attestation.device_id()),
-                    assertion,
-                    None
-                ),
-                pallet_pass::Error::<Test>::CredentialInvalid
+                ext.validate_only(
+                    None.into(),
+                    &call,
+                    &call.get_dispatch_info(),
+                    call.encoded_size(),
+                    TransactionSource::External,
+                    0
+                )
+                .map(|_| ()),
+                InvalidTransaction::BadSigner
             );
         })
     }
@@ -231,7 +262,7 @@ mod assertion {
     fn authentication_works_if_credentials_are_valid() {
         new_test_ext(2).execute_with(|client| {
             let (credential_id, attestation) =
-                client.attestation(USER, System::block_number(), AuthorityId::get());
+                client.attestation(USER, System::block_number(), &[], AuthorityId::get());
 
             assert_ok!(Pass::register(
                 RuntimeOrigin::root(),
@@ -239,12 +270,29 @@ mod assertion {
                 attestation.clone()
             ));
 
-            assert_ok!(Pass::authenticate(
-                RuntimeOrigin::signed(1),
-                *(attestation.device_id()),
-                client.assertion(credential_id, System::block_number(), AuthorityId::get()),
-                None
-            ));
+            let extrinsic_version: u8 = 0;
+            let call: RuntimeCall = frame_system::Call::remark { remark: vec![] }.into();
+
+            let assertion = client.assertion(
+                credential_id,
+                System::block_number(),
+                &TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256),
+                AuthorityId::get(),
+            );
+
+            let ext =
+                pallet_pass::PassAuthenticate::<Test>::from(*attestation.device_id(), assertion);
+
+            assert_ok!(ext
+                .validate_only(
+                    None.into(),
+                    &call,
+                    &call.get_dispatch_info(),
+                    call.encoded_size(),
+                    TransactionSource::External,
+                    extrinsic_version,
+                )
+                .map(|_| ()));
         })
     }
 }
