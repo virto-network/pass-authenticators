@@ -41,8 +41,8 @@ pallet-balances = { version = "41.1.0", default-features = false }
 pallet-scheduler = { version = "41.0.0", default-features = false }
 
 # FRAME Contrib
-traits-authn = { git = "https://github.com/virto-network/frame-contrib", branch = "fix/prevent-reusing-attestations-assertions", package = "fc-traits-authn", default-features = false }
-pallet-pass = { git = "https://github.com/virto-network/frame-contrib", branch = "fix/prevent-reusing-attestations-assertions", package = "fc-pallet-pass", default-features = false }
+traits-authn = { git = "https://github.com/virto-network/frame-contrib", package = "fc-traits-authn", default-features = false }
+pallet-pass = { git = "https://github.com/virto-network/frame-contrib", package = "fc-pallet-pass", default-features = false }
 
 # Local Crates
 verifier = { path = "verifier", default-features = false }

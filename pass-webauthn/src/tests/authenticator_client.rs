@@ -140,10 +140,9 @@ impl WebAuthnClient {
         &mut self,
         user_id: HashedUserId,
         context: BlockNumberFor<Test>,
-        xtc: &impl ExtrinsicContext,
         authority_id: AuthorityId,
     ) -> (Vec<u8>, crate::Attestation<BlockNumberFor<Test>>) {
-        let challenge = BlockChallenger::generate(&context, xtc);
+        let challenge = BlockChallenger::generate(&context);
 
         let (credential_id, authenticator_data, client_data, public_key) = self
             .create_credential_sync(user_id, challenge.as_slice())
@@ -168,10 +167,9 @@ impl WebAuthnClient {
         &mut self,
         credential_id: impl Into<Bytes>,
         context: BlockNumberFor<Test>,
-        xtc: &impl ExtrinsicContext,
         authority_id: AuthorityId,
     ) -> crate::Assertion<BlockNumberFor<Test>> {
-        let challenge = BlockChallenger::generate(&context, xtc);
+        let challenge = BlockChallenger::generate(&context);
 
         let (user_handle, authenticator_data, client_data, signature) = self
             .authenticate_credential_sync(credential_id, challenge.as_slice())
