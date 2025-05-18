@@ -5,6 +5,8 @@ use verifier::webauthn_verify;
 
 use super::{CxOf, Device};
 
+const LOG_TARGET: &str = "pass::webauthn";
+
 #[cfg(any(feature = "runtime", test))]
 impl<Ch, A> From<Attestation<CxOf<Ch>>> for Device<Ch, A>
 where
@@ -22,6 +24,7 @@ where
 impl<Cx> VerifyCredential<Assertion<Cx>> for Credential {
     fn verify(&self, credential: &Assertion<Cx>) -> Option<()> {
         log::trace!(
+            target: LOG_TARGET,
             "Verifying credentials with public key {:?} and signature {:?}",
             &self.public_key,
             &credential.signature
