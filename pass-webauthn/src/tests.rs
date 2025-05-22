@@ -108,6 +108,7 @@ impl pallet_pass::Config for Test {
     type Balances = Balances;
     type Authenticator = Authenticator<BlockChallenger, AuthorityId>;
     type Scheduler = Scheduler;
+    type BlockNumberProvider = System;
     type RegistrarConsideration = ();
     type DeviceConsideration = ();
     type SessionKeyConsideration = ();
