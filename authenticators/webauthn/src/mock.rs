@@ -1,5 +1,6 @@
 //! Test environment for pass webauthn.
 
+use crate::{AssertionMeta, Authenticator, DEREncodedPublicKey};
 use frame::{
     hashing,
     testing_prelude::*,
@@ -10,11 +11,16 @@ use pallet_pass::AddressGenerator;
 use passkey_authenticator::MockUserValidationMethod;
 use passkey_client::{Client, DefaultClientData};
 use passkey_types::ctap2::Aaguid;
+use passkey_types::webauthn::{
+    AttestationConveyancePreference, AttestationStatementFormatIdentifiers,
+    CredentialCreationOptions, CredentialRequestOptions, PublicKeyCredentialCreationOptions,
+    PublicKeyCredentialDescriptor, PublicKeyCredentialParameters,
+    PublicKeyCredentialRequestOptions, PublicKeyCredentialRpEntity, PublicKeyCredentialType,
+    PublicKeyCredentialUserEntity, UserVerificationRequirement,
+};
 use passkey_types::{Bytes, Passkey};
-use passkey_types::webauthn::{AttestationConveyancePreference, AttestationStatementFormatIdentifiers, CredentialCreationOptions, CredentialRequestOptions, PublicKeyCredentialCreationOptions, PublicKeyCredentialDescriptor, PublicKeyCredentialParameters, PublicKeyCredentialRequestOptions, PublicKeyCredentialRpEntity, PublicKeyCredentialType, PublicKeyCredentialUserEntity, UserVerificationRequirement};
 use traits_authn::{util::AuthorityFromPalletId, Challenger, ExtrinsicContext, HashedUserId};
 use url_evil::Url;
-use crate::{AssertionMeta, Authenticator, DEREncodedPublicKey};
 
 #[frame_construct_runtime]
 pub mod runtime {
@@ -174,7 +180,7 @@ impl WebAuthnClient {
             creation_options,
             DefaultClientData,
         ))
-            .map_err(|_| ())?;
+        .map_err(|_| ())?;
 
         let public_key: DEREncodedPublicKey = result
             .response
@@ -222,7 +228,7 @@ impl WebAuthnClient {
             request_options,
             DefaultClientData,
         ))
-            .map_err(|_| ())?;
+        .map_err(|_| ())?;
 
         // Extracting required fields
         let user_handle = result
