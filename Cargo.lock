@@ -2520,7 +2520,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pass-webauthn"
+name = "pass-authenticators-webauthn"
 version = "0.1.0"
 dependencies = [
  "coset",
@@ -2540,7 +2540,7 @@ dependencies = [
  "simple-base64",
  "url 2.5.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 2.5.4 (git+https://github.com/servo/rust-url)",
- "verifier",
+ "webauthn-verifier",
 ]
 
 [[package]]
@@ -4419,18 +4419,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 
 [[package]]
-name = "verifier"
-version = "0.1.0"
-dependencies = [
- "coset",
- "log",
- "p256",
- "passkey-authenticator",
- "rand",
- "sha2 0.10.9",
-]
-
-[[package]]
 name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4585,6 +4573,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a05d73b933a847d6cccdda8f838a22ff101ad9bf93e33684f39c1f5f0eece3d"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "webauthn-verifier"
+version = "0.1.0"
+dependencies = [
+ "coset",
+ "log",
+ "p256",
+ "passkey-authenticator",
+ "rand",
+ "sha2 0.10.9",
 ]
 
 [[package]]
