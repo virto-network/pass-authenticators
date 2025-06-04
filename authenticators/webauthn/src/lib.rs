@@ -8,16 +8,16 @@ use traits_authn::{
     util::{Auth, Dev},
     AuthorityId, Challenger, DeviceId, HashedUserId,
 };
+#[cfg(any(feature = "runtime", test))]
+use {codec::MaxEncodedLen, scale_info::TypeInfo};
 
+#[cfg(test)]
+mod mock;
 #[cfg(test)]
 mod tests;
 
 #[cfg(any(feature = "runtime", test))]
 pub use runtime::{Authenticator, Device};
-
-#[cfg(any(feature = "runtime", test))]
-use {codec::MaxEncodedLen, scale_info::TypeInfo};
-
 #[cfg(any(feature = "runtime", test))]
 mod runtime;
 

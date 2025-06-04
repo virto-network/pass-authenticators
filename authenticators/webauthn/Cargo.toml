@@ -31,12 +31,6 @@ url-evil.workspace = true
 [features]
 default = ["std", "runtime"]
 runtime = ["frame/runtime"]
-runtime-benchmarks = [
-	"frame/runtime-benchmarks",
-	"pallet-balances/runtime-benchmarks",
-	"pallet-pass/runtime-benchmarks",
-	"pallet-scheduler/runtime-benchmarks",
-]
 std = [
 	"base64/std",
 	"codec/std",
