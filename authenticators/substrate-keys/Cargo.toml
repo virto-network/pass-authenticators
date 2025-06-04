@@ -1,0 +1,38 @@
+[package]
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+name = "pass-authenticators-substrate-keys"
+repository.workspace = true
+version = "0.1.0"
+
+[dependencies]
+codec.workspace = true
+frame = { workspace = true, features = ["runtime"] }
+log.workspace = true
+scale-info.workspace = true
+traits-authn.workspace = true
+
+[dev-dependencies]
+pallet-balances.workspace = true
+pallet-pass.workspace = true
+pallet-scheduler.workspace = true
+
+[features]
+default = ["std"]
+std = [
+	"pallet-pass/std",
+	"traits-authn/std",
+	"log/std",
+	"pallet-balances/std",
+	"pallet-scheduler/std",
+	"codec/std",
+	"frame/std",
+	"scale-info/std"
+]
+try-runtime = [
+	"pallet-pass/try-runtime",
+	"pallet-balances/try-runtime",
+	"pallet-scheduler/try-runtime",
+	"frame/try-runtime"
+]

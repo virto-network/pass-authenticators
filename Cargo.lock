@@ -2520,6 +2520,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "pass-authenticators-substrate-keys"
+version = "0.1.0"
+dependencies = [
+ "fc-pallet-pass",
+ "fc-traits-authn",
+ "log",
+ "pallet-balances",
+ "pallet-scheduler",
+ "parity-scale-codec",
+ "polkadot-sdk-frame",
+ "scale-info",
+]
+
+[[package]]
 name = "pass-authenticators-webauthn"
 version = "0.1.0"
 dependencies = [
