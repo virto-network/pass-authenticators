@@ -1,8 +1,6 @@
 use super::*;
 
-use frame::traits::Verify;
-use traits_authn::util::VerifyCredential;
-use traits_authn::{Challenger, DeviceChallengeResponse, DeviceId};
+use sp_runtime::traits::Verify;
 
 impl<Ch: Challenger, AuthId> From<KeyRegistration<CxOf<Ch>>> for Device<Ch, AuthId> {
     fn from(substrate_signature: KeyRegistration<CxOf<Ch>>) -> Self {

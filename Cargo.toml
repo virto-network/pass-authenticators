@@ -38,6 +38,10 @@ scale-info = { version = "2.11.6", default-features = false, features = [
   "derive",
 ] }
 
+# Substrate
+sp-core = { version = "36.1.0", default-features = false }
+sp-runtime = { version = "41.1.0", default-features = false }
+
 # FRAME
 frame = { version = "0.9.1", package = "polkadot-sdk-frame", default-features = false }
 pallet-balances = { version = "41.1.0", default-features = false }

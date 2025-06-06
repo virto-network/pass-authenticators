@@ -1,5 +1,5 @@
 use super::*;
-use frame::deps::sp_core::*;
+use sp_core::{ecdsa, ed25519, sr25519, Pair};
 
 impl<Cx: Encode> SignedMessage<Cx> {
     pub(crate) fn message(&self) -> impl AsRef<[u8]> {
