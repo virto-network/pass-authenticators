@@ -1,7 +1,7 @@
 use super::*;
 
 use traits_authn::{util::VerifyCredential, Challenger};
-use verifier::webauthn_verify;
+use webauthn_verifier::webauthn_verify;
 
 use super::{CxOf, Device};
 

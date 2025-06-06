@@ -66,7 +66,7 @@ pub enum VerifyError {
     VerifySignature,
 }
 
-const LOG_TARGET: &str = "verifier::verify_signature";
+const LOG_TARGET: &str = "webauthn_verifier::verify_signature";
 
 pub fn webauthn_verify(
     authenticator_data: &[u8],
