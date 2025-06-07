@@ -12,18 +12,21 @@ impl<Cx: Encode> SignedMessage<Cx> {
     }
 }
 
+#[cfg(feature = "full-crypto")]
 impl<Cx: Encode> Sign<sr25519::Pair, Cx> for SignedMessage<Cx> {
     fn sign(&self, signer: sr25519::Pair) -> MultiSignature {
         MultiSignature::from(signer.sign(self.message().as_ref()))
     }
 }
 
+#[cfg(feature = "full-crypto")]
 impl<Cx: Encode> Sign<ed25519::Pair, Cx> for SignedMessage<Cx> {
     fn sign(&self, signer: ed25519::Pair) -> MultiSignature {
         MultiSignature::from(signer.sign(self.message().as_ref()))
     }
 }
 
+#[cfg(feature = "full-crypto")]
 impl<Cx: Encode> Sign<ecdsa::Pair, Cx> for SignedMessage<Cx> {
     fn sign(&self, signer: ecdsa::Pair) -> MultiSignature {
         MultiSignature::from(signer.sign(self.message().as_ref()))

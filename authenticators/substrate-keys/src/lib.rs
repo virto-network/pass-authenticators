@@ -58,6 +58,7 @@ pub struct KeySignature<Cx> {
     pub signature: MultiSignature,
 }
 
+#[cfg(feature = "full-crypto")]
 /// Allows an arbitrary message to be signed from a signer which returns a [`MultiSignature`].
 pub trait Sign<S, Cx> {
     /// Signs a message, returning a [`MultiSignature`].

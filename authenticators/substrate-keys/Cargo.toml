@@ -21,8 +21,9 @@ pallet-pass.workspace = true
 pallet-scheduler.workspace = true
 
 [features]
-default = ["std", "runtime"]
+default = ["std", "runtime", "full-crypto"]
 runtime = []
+full-crypto = ["sp-core/full_crypto"]
 std = [
   "codec/std",
   "frame/std",
