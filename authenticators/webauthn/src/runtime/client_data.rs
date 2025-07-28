@@ -29,8 +29,7 @@ impl TryFrom<Vec<u8>> for RawClientData {
 impl RawClientData {
     pub fn challenge(&self) -> Option<Challenge> {
         let encoded_challenge =
-            base64::decode_engine(self.challenge.as_bytes(), &BASE64_URL_SAFE_NO_PAD)
-                .ok()?;
+            base64::decode_engine(self.challenge.as_bytes(), &BASE64_URL_SAFE_NO_PAD).ok()?;
         Decode::decode(&mut encoded_challenge.as_ref()).ok()
     }
 

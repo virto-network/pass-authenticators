@@ -18,8 +18,11 @@ where
     Cx: Parameter + Copy + 'static,
 {
     fn is_valid(&self) -> bool {
-        TryInto::<RawClientData>::try_into(self.client_data.to_vec())
-            .is_ok_and(|client_data| client_data.request_type().eq(&String::from("webauthn.create")))
+        TryInto::<RawClientData>::try_into(self.client_data.to_vec()).is_ok_and(|client_data| {
+            client_data
+                .request_type()
+                .eq(&String::from("webauthn.create"))
+        })
 
         // TODO: Implement the rest of GUV-2, once having resolved the conversation around it.
     }
