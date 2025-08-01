@@ -264,7 +264,8 @@ impl WebAuthnClient {
                     context,
                 },
                 authenticator_data,
-                client_data: BoundedVec::truncate_from(client_data),
+                client_data: BoundedVec::try_from(client_data)
+                    .expect("client_data is long enough; qed"),
                 public_key,
             },
         )
@@ -290,7 +291,7 @@ impl WebAuthnClient {
                 context,
             },
             authenticator_data,
-            client_data: BoundedVec::truncate_from(client_data),
+            client_data: BoundedVec::try_from(client_data).expect("client_data is long enough; qed"),
             signature,
         }
     }

@@ -22,7 +22,8 @@ mod attestation {
                         .to_vec()
                 })
                 .expect("`client_data` is a buffer representation of a utf-8 encoded json");
-            attestation.client_data = BoundedVec::truncate_from(c_data);
+            attestation.client_data =
+                BoundedVec::try_from(c_data).expect("c_data is long enough; qed");
 
             assert_noop!(
                 Pass::register(RuntimeOrigin::root(), USER, attestation),
