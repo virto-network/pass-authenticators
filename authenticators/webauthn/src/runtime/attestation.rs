@@ -1,11 +1,14 @@
 use super::*;
+use crate::runtime::client_data::RawClientData;
 
 impl<Cx> Attestation<Cx>
 where
     Cx: Parameter,
 {
     fn challenge(&self) -> Challenge {
-        helpers::find_challenge_from_client_data(self.client_data.clone()).unwrap_or_default()
+        TryInto::<RawClientData>::try_into(self.client_data.to_vec())
+            .map(|client_data| client_data.challenge().unwrap_or_default())
+            .unwrap_or_default()
     }
 }
 
@@ -14,11 +17,14 @@ impl<Cx> DeviceChallengeResponse<Cx> for Attestation<Cx>
 where
     Cx: Parameter + Copy + 'static,
 {
-    // TODO: @pandres95, considering that DeviceChallengeResponse is used for creating a new
-    // authentication device, webauth_verify wouldn't work here. We need to implement a new
-    // verification method exclusively for credential creation.
     fn is_valid(&self) -> bool {
-        true
+        TryInto::<RawClientData>::try_into(self.client_data.to_vec()).is_ok_and(|client_data| {
+            client_data
+                .request_type()
+                .eq(&String::from("webauthn.create"))
+        })
+
+        // TODO: Implement the rest of GUV-2, once having resolved the conversation around it.
     }
 
     fn used_challenge(&self) -> (Cx, Challenge) {

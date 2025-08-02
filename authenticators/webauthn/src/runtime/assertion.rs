@@ -1,4 +1,5 @@
 use super::*;
+use crate::runtime::client_data::RawClientData;
 use traits_authn::{HashedUserId, UserChallengeResponse};
 
 impl<Cx> Assertion<Cx>
@@ -6,7 +7,9 @@ where
     Cx: Parameter,
 {
     fn challenge(&self) -> Challenge {
-        helpers::find_challenge_from_client_data(self.client_data.clone()).unwrap_or_default()
+        TryInto::<RawClientData>::try_into(self.client_data.to_vec())
+            .map(|client_data| client_data.challenge().unwrap_or_default())
+            .unwrap_or_default()
     }
 }
 
@@ -15,7 +18,8 @@ where
     Cx: Parameter + Copy + 'static,
 {
     fn is_valid(&self) -> bool {
-        true
+        TryInto::<RawClientData>::try_into(self.client_data.to_vec())
+            .is_ok_and(|client_data| client_data.request_type().eq(&String::from("webauthn.get")))
     }
 
     fn used_challenge(&self) -> (Cx, Challenge) {

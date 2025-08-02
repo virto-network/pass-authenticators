@@ -14,7 +14,7 @@ mod attestation {
                 client.attestation(USER, System::block_number(), &[], AuthorityId::get());
 
             // Alters "challenge", so this will fail
-            attestation.client_data = String::from_utf8(attestation.client_data)
+            let c_data = String::from_utf8(attestation.client_data.into())
                 .map(|client_data| {
                     client_data
                         .replace("challenge", "chellang")
@@ -22,6 +22,8 @@ mod attestation {
                         .to_vec()
                 })
                 .expect("`client_data` is a buffer representation of a utf-8 encoded json");
+            attestation.client_data =
+                BoundedVec::try_from(c_data).expect("c_data is long enough; qed");
 
             assert_noop!(
                 Pass::register(RuntimeOrigin::root(), USER, attestation),

@@ -12,5 +12,5 @@ pub type Device<Ch, A> = Dev<Credential, A, Ch, Assertion<CxOf<Ch>>>;
 
 pub mod assertion;
 pub mod attestation;
+mod client_data;
 pub mod credential;
-mod helpers;

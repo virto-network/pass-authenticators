@@ -10,6 +10,8 @@ version = "0.1.0"
 base64 = { workspace = true, features = ["alloc"] }
 codec.workspace = true
 frame = { workspace = true, optional = true }
+serde = { workspace = true, optional = true }
+serde_json = { workspace = true, optional = true }
 log.workspace = true
 scale-info.workspace = true
 traits-authn.workspace = true
@@ -30,10 +32,11 @@ url-evil.workspace = true
 
 [features]
 default = ["std", "runtime"]
-runtime = ["frame/runtime"]
+runtime = ["frame/runtime", "serde", "serde_json"]
 std = [
 	"base64/std",
 	"codec/std",
+	"coset/std",
 	"frame?/std",
 	"futures/std",
 	"log/std",
@@ -41,11 +44,12 @@ std = [
 	"pallet-pass/std",
 	"pallet-scheduler/std",
 	"scale-info/std",
+	"serde?/std",
+	"serde_json?/std",
 	"traits-authn/std",
 	"url/std",
-	"webauthn-verifier/std",
-	"coset/std",
 	"url-evil/std",
+	"webauthn-verifier/std",
 ]
 try-runtime = [
 	"frame/try-runtime",

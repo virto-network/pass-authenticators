@@ -2,7 +2,6 @@
 
 use crate::{AssertionMeta, Authenticator, DEREncodedPublicKey};
 use frame::{
-    hashing,
     testing_prelude::*,
     traits::{ConstU32, EqualPrivilegeOnly},
 };
@@ -62,7 +61,7 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-    pub MaxWeight: weights::Weight = weights::Weight::MAX;
+    pub MaxWeight: Weight = Weight::MAX;
 }
 
 impl pallet_scheduler::Config for Test {
@@ -265,7 +264,8 @@ impl WebAuthnClient {
                     context,
                 },
                 authenticator_data,
-                client_data,
+                client_data: BoundedVec::try_from(client_data)
+                    .expect("client_data is long enough; qed"),
                 public_key,
             },
         )
@@ -291,7 +291,7 @@ impl WebAuthnClient {
                 context,
             },
             authenticator_data,
-            client_data,
+            client_data: BoundedVec::try_from(client_data).expect("client_data is long enough; qed"),
             signature,
         }
     }

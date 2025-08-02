@@ -4,6 +4,8 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use codec::{Decode, DecodeWithMemTracking, Encode};
+use frame::prelude::BoundedVec;
+use frame::traits::ConstU32;
 use traits_authn::{
     util::{Auth, Dev},
     AuthorityId, Challenger, DeviceId, HashedUserId,
@@ -53,7 +55,10 @@ pub struct AttestationMeta<Cx> {
 pub struct Attestation<Cx> {
     pub(crate) meta: AttestationMeta<Cx>,
     pub(crate) authenticator_data: Vec<u8>,
+    #[cfg(not(any(feature = "runtime", test)))]
     pub(crate) client_data: Vec<u8>,
+    #[cfg(any(feature = "runtime", test))]
+    pub(crate) client_data: BoundedVec<u8, ConstU32<1024>>,
     pub(crate) public_key: DEREncodedPublicKey,
 }
 
@@ -76,6 +81,9 @@ pub struct AssertionMeta<Cx> {
 pub struct Assertion<Cx> {
     pub(crate) meta: AssertionMeta<Cx>,
     pub(crate) authenticator_data: Vec<u8>,
+    #[cfg(not(any(feature = "runtime", test)))]
     pub(crate) client_data: Vec<u8>,
+    #[cfg(any(feature = "runtime", test))]
+    pub(crate) client_data: BoundedVec<u8, ConstU32<1024>>,
     pub(crate) signature: Vec<u8>,
 }
