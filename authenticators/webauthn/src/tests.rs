@@ -92,6 +92,7 @@ mod assertion {
 
     #[test]
     fn authentication_works_if_credentials_are_valid() {
+        env_logger::init();
         new_test_ext(2).execute_with(|client| {
             let (credential_id, attestation) =
                 client.attestation(USER, System::block_number(), &[], AuthorityId::get());
