@@ -65,6 +65,8 @@ where
             && authenticator_data
                 .flags
                 .contains(AuthenticatorFlags::USER_VERIFIED)
+            // Len(CredentialID) < 1023
+            && authenticator_data.attested_credential_data.is_some_and(|att_credential| att_credential.credential_id.len() < 1023)
     }
 
     fn used_challenge(&self) -> (Cx, Challenge) {
