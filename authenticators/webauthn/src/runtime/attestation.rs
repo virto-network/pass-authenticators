@@ -1,4 +1,5 @@
 use super::*;
+use crate::runtime::authenticator_data::AuthenticatorFlags;
 use authenticator_data::AuthenticatorData;
 use client_data::RawClientData;
 use frame::deps::sp_core::hexdisplay::AsBytesRef;
@@ -42,10 +43,28 @@ where
             sha2_256(domain.as_bytes())
         };
 
+        // clientData.type == "webauthn.create"
         client_data
             .request_type()
             .eq(&String::from("webauthn.create"))
+            // rpIdHash == sha256(origin.domain)
             && authenticator_data.rp_id_hash == rp_id_hash
+            // if !BE, then !BS
+            && (
+                authenticator_data
+                    .flags
+                    .contains(AuthenticatorFlags::BACKUP_ELEGIBILITY) ||
+                !authenticator_data
+                    .flags
+                    .contains(AuthenticatorFlags::BACKUP_STATE)
+            )
+            // UP && UV
+            && authenticator_data
+                .flags
+                .contains(AuthenticatorFlags::USER_PRESENT)
+            && authenticator_data
+                .flags
+                .contains(AuthenticatorFlags::USER_VERIFIED)
     }
 
     fn used_challenge(&self) -> (Cx, Challenge) {
