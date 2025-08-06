@@ -9,7 +9,7 @@ mod attestation {
 
     #[test]
     fn registration_fails_if_attestation_is_invalid() {
-        new_test_ext(1).execute_with(|client| {
+        new_test_ext(1, false).execute_with(|client| {
             let (_, mut attestation) =
                 client.attestation(USER, System::block_number(), &[], AuthorityId::get());
 
@@ -34,7 +34,7 @@ mod attestation {
 
     #[test]
     fn registration_works_if_attestation_is_valid() {
-        new_test_ext(1).execute_with(|client| {
+        new_test_ext(1, false).execute_with(|client| {
             assert_ok!(Pass::register(
                 RuntimeOrigin::root(),
                 USER,
@@ -53,7 +53,7 @@ mod assertion {
 
     #[test]
     fn authentication_fails_if_credentials_are_invalid() {
-        new_test_ext(2).execute_with(|client| {
+        new_test_ext(2, false).execute_with(|client| {
             let (credential_id, attestation) =
                 client.attestation(USER, System::block_number(), &[], AuthorityId::get());
 
@@ -92,7 +92,7 @@ mod assertion {
 
     #[test]
     fn authentication_works_if_credentials_are_valid() {
-        new_test_ext(2).execute_with(|client| {
+        new_test_ext(2, false).execute_with(|client| {
             let (credential_id, attestation) =
                 client.attestation(USER, System::block_number(), &[], AuthorityId::get());
 
@@ -114,6 +114,72 @@ mod assertion {
 
             let ext =
                 pallet_pass::PassAuthenticate::<Test>::from(*attestation.device_id(), assertion);
+
+            assert_ok!(ext
+                .validate_only(
+                    None.into(),
+                    &call,
+                    &call.get_dispatch_info(),
+                    call.encoded_size(),
+                    TransactionSource::External,
+                    extrinsic_version,
+                )
+                .map(|_| ()));
+        })
+    }
+
+    #[test]
+    fn authentication_works_when_sing_count_changes() {
+        new_test_ext(3, true).execute_with(|client| {
+            let (credential_id, attestation) =
+                client.attestation(USER, System::block_number(), &[], AuthorityId::get());
+
+            assert_ok!(Pass::register(
+                RuntimeOrigin::root(),
+                USER,
+                attestation.clone()
+            ));
+
+            let extrinsic_version: u8 = 0;
+            let call: RuntimeCall = frame_system::Call::remark { remark: vec![] }.into();
+
+            let first_assertion = client.assertion(
+                credential_id.clone(),
+                System::block_number(),
+                &TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256),
+                AuthorityId::get(),
+            );
+
+            let ext = pallet_pass::PassAuthenticate::<Test>::from(
+                *attestation.device_id(),
+                first_assertion,
+            );
+
+            assert_ok!(ext
+                .validate_only(
+                    None.into(),
+                    &call,
+                    &call.get_dispatch_info(),
+                    call.encoded_size(),
+                    TransactionSource::External,
+                    extrinsic_version,
+                )
+                .map(|_| ()));
+
+            let second_assertion = client.assertion(
+                credential_id,
+                System::block_number(),
+                &TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256),
+                AuthorityId::get(),
+            );
+
+            // Asserts that sign count changes
+            assert_eq!(second_assertion.authenticator_data[33..37], [0, 0, 0, 2]);
+
+            let ext = pallet_pass::PassAuthenticate::<Test>::from(
+                *attestation.device_id(),
+                second_assertion,
+            );
 
             assert_ok!(ext
                 .validate_only(

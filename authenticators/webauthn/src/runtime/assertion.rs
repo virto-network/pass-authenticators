@@ -31,7 +31,7 @@ where
 
         // clientData.type == "webauthn.create"
         client_data.request_type().eq(&String::from("webauthn.get"))
-            // Check UV
+            // Check UP
             && authenticator_data
                 .flags
                 .contains(AuthenticatorFlags::USER_PRESENT)
