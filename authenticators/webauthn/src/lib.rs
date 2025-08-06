@@ -30,10 +30,13 @@ pub type DEREncodedPublicKey = [u8; 91];
     any(feature = "runtime", test),
     derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
 )]
-pub struct Credential {
+pub struct CredentialRecord {
     device_id: DeviceId,
     //. A DER-encoded public key
     public_key: DEREncodedPublicKey,
+    sign_count: u32,
+    backup_eligible: bool,
+    backup_state: bool,
 }
 
 #[derive(Clone, Encode, Decode, Debug, PartialEq, Eq, Copy)]

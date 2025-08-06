@@ -1,5 +1,10 @@
 use super::*;
-use crate::runtime::client_data::RawClientData;
+use crate::runtime::authenticator_data::AuthenticatorFlags;
+use authenticator_data::AuthenticatorData;
+use client_data::RawClientData;
+use frame::deps::sp_core::hexdisplay::AsBytesRef;
+use frame::hashing::sha2_256;
+use url::Url;
 
 impl<Cx> Attestation<Cx>
 where
@@ -18,13 +23,50 @@ where
     Cx: Parameter + Copy + 'static,
 {
     fn is_valid(&self) -> bool {
-        TryInto::<RawClientData>::try_into(self.client_data.to_vec()).is_ok_and(|client_data| {
-            client_data
-                .request_type()
-                .eq(&String::from("webauthn.create"))
-        })
+        let Ok(client_data): Result<RawClientData, _> = self.client_data.to_vec().try_into() else {
+            return false;
+        };
+        let Ok(authenticator_data): Result<AuthenticatorData, _> =
+            self.authenticator_data.as_bytes_ref().try_into()
+        else {
+            return false;
+        };
 
-        // TODO: Implement the rest of GUV-2, once having resolved the conversation around it.
+        let rp_id_hash = {
+            let Ok(origin_url) = Url::parse(&client_data.origin) else {
+                return false;
+            };
+            let Some(domain) = origin_url.domain() else {
+                return false;
+            };
+
+            sha2_256(domain.as_bytes())
+        };
+
+        // clientData.type == "webauthn.create"
+        client_data
+            .request_type()
+            .eq(&String::from("webauthn.create"))
+            // rpIdHash == sha256(origin.domain)
+            && authenticator_data.rp_id_hash == rp_id_hash
+            // if !BE, then !BS
+            && (
+                authenticator_data
+                    .flags
+                    .contains(AuthenticatorFlags::BACKUP_ELEGIBILITY) ||
+                !authenticator_data
+                    .flags
+                    .contains(AuthenticatorFlags::BACKUP_STATE)
+            )
+            // UP && UV
+            && authenticator_data
+                .flags
+                .contains(AuthenticatorFlags::USER_PRESENT)
+            && authenticator_data
+                .flags
+                .contains(AuthenticatorFlags::USER_VERIFIED)
+            // Len(CredentialID) < 1023
+            && authenticator_data.attested_credential_data.is_some_and(|att_credential| att_credential.credential_id.len() < 1023)
     }
 
     fn used_challenge(&self) -> (Cx, Challenge) {
