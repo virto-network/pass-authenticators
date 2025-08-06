@@ -139,7 +139,7 @@ impl WebAuthnClient {
             MockUserValidationMethod::verified_user(times),
         );
         authenticator.set_make_credentials_with_signature_counter(with_signer_counter);
-        
+
         Self {
             origin: Url::parse(origin).expect("invalid url provided"),
             client: Client::new(authenticator),
@@ -313,5 +313,8 @@ pub fn new_test_ext(times: usize, with_signer_counter: bool) -> TestExt {
     t.execute_with(|| {
         System::set_block_number(1);
     });
-    TestExt(t, WebAuthnClient::new("https://pass_web.pass.int", times, with_signer_counter))
+    TestExt(
+        t,
+        WebAuthnClient::new("https://pass_web.pass.int", times, with_signer_counter),
+    )
 }
