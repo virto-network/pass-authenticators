@@ -22,7 +22,7 @@ where
 }
 
 impl<Cx> VerifyCredential<Assertion<Cx>> for Credential {
-    fn verify(&self, credential: &Assertion<Cx>) -> Option<()> {
+    fn verify(&mut self, credential: &Assertion<Cx>) -> Option<()> {
         log::trace!(
             target: LOG_TARGET,
             "Verifying credentials with public key {:?} and signature {:?}",

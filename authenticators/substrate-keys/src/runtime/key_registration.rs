@@ -28,7 +28,7 @@ impl<Cx: Parameter + 'static> DeviceChallengeResponse<Cx> for KeyRegistration<Cx
 }
 
 impl<Cx: Parameter> VerifyCredential<KeySignature<Cx>> for AccountId32 {
-    fn verify(&self, credential: &KeySignature<Cx>) -> Option<()> {
+    fn verify(&mut self, credential: &KeySignature<Cx>) -> Option<()> {
         credential
             .signature
             .verify(credential.message.message().as_ref(), self)
