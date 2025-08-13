@@ -8,17 +8,21 @@ version = "0.1.0"
 
 [dependencies]
 base64 = { workspace = true, features = ["alloc"] }
+bitflags = { workspace = true, optional = true }
+byteorder = { workspace = true, optional = true }
 codec.workspace = true
 frame = { workspace = true, optional = true }
+log.workspace = true
+coset = { workspace = true, optional = true }
+scale-info.workspace = true
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
-log.workspace = true
-scale-info.workspace = true
 traits-authn.workspace = true
 url.workspace = true
 webauthn-verifier.workspace = true
 
 [dev-dependencies]
+env_logger = "0.11.8"
 coset.workspace = true
 futures.workspace = true
 pallet-balances.workspace = true
@@ -32,28 +36,37 @@ url-evil.workspace = true
 
 [features]
 default = ["std", "runtime"]
-runtime = ["frame/runtime", "serde", "serde_json"]
+runtime = [
+  "frame/runtime",
+  "bitflags",
+  "byteorder",
+  "coset",
+  "serde",
+  "serde_json",
+]
 std = [
-	"base64/std",
-	"codec/std",
-	"coset/std",
-	"frame?/std",
-	"futures/std",
-	"log/std",
-	"pallet-balances/std",
-	"pallet-pass/std",
-	"pallet-scheduler/std",
-	"scale-info/std",
-	"serde?/std",
-	"serde_json?/std",
-	"traits-authn/std",
-	"url/std",
-	"url-evil/std",
-	"webauthn-verifier/std",
+  "base64/std",
+  "bitflags/std",
+  "byteorder/std",
+  "codec/std",
+  "coset/std",
+  "frame?/std",
+  "futures/std",
+  "log/std",
+  "pallet-balances/std",
+  "pallet-pass/std",
+  "pallet-scheduler/std",
+  "scale-info/std",
+  "serde?/std",
+  "serde_json?/std",
+  "traits-authn/std",
+  "url/std",
+  "url-evil/std",
+  "webauthn-verifier/std",
 ]
 try-runtime = [
-	"frame/try-runtime",
-	"pallet-balances/try-runtime",
-	"pallet-pass/try-runtime",
-	"pallet-scheduler/try-runtime",
+  "frame/try-runtime",
+  "pallet-balances/try-runtime",
+  "pallet-pass/try-runtime",
+  "pallet-scheduler/try-runtime",
 ]

@@ -13,7 +13,7 @@ mod tests;
 #[cfg(any(test, feature = "runtime"))]
 mod runtime {
     use super::*;
-    use traits_authn::{prelude::*, util::*, *};
+    use traits_authn::{prelude::*, util::*};
 
     mod key_registration;
     mod key_signature;

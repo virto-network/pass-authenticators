@@ -120,6 +120,8 @@ impl pallet_pass::Config for Test {
     type DeviceConsideration = ();
     type SessionKeyConsideration = ();
     type PalletId = PassPalletId;
+    type MaxDevicesPerAccount = ConstU64<1>;
+    type MaxSessionsPerAccount = ConstU64<1>;
     type MaxSessionDuration = ConstU64<10>;
 }
 
@@ -129,13 +131,15 @@ pub struct WebAuthnClient {
 }
 
 impl WebAuthnClient {
-    pub fn new(origin: &'static str, times: usize) -> Self {
+    pub fn new(origin: &'static str, times: usize, with_signer_counter: bool) -> Self {
         // Create Authenticator
-        let authenticator = passkey_authenticator::Authenticator::new(
+        let mut authenticator = passkey_authenticator::Authenticator::new(
             Aaguid::new_empty(),
             None,
             MockUserValidationMethod::verified_user(times),
         );
+        authenticator.set_make_credentials_with_signature_counter(with_signer_counter);
+
         Self {
             origin: Url::parse(origin).expect("invalid url provided"),
             client: Client::new(authenticator),
@@ -213,9 +217,9 @@ impl WebAuthnClient {
                     transports: None,
                 }]),
                 timeout: None,
-                user_verification: UserVerificationRequirement::default(),
+                user_verification: UserVerificationRequirement::Required,
                 hints: None,
-                attestation: AttestationConveyancePreference::None,
+                attestation: AttestationConveyancePreference::Direct,
                 attestation_formats: None,
                 extensions: None,
             },
@@ -304,10 +308,13 @@ impl TestExt {
     }
 }
 
-pub fn new_test_ext(times: usize) -> TestExt {
+pub fn new_test_ext(times: usize, with_signer_counter: bool) -> TestExt {
     let mut t = TestExternalities::default();
     t.execute_with(|| {
         System::set_block_number(1);
     });
-    TestExt(t, WebAuthnClient::new("https://pass_web.pass.int", times))
+    TestExt(
+        t,
+        WebAuthnClient::new("https://pass_web.pass.int", times, with_signer_counter),
+    )
 }

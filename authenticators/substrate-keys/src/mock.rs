@@ -104,6 +104,8 @@ impl pallet_pass::Config for Test {
     type DeviceConsideration = ();
     type SessionKeyConsideration = ();
     type PalletId = PassPalletId;
+    type MaxDevicesPerAccount = ConstU64<1>;
+    type MaxSessionsPerAccount = ConstU64<1>;
     type MaxSessionDuration = ConstU64<10>;
 }
 
