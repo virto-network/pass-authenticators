@@ -1,5 +1,7 @@
 use super::*;
+use crate::runtime::authenticator_data::{AuthenticatorData, AuthenticatorFlags};
 use crate::runtime::client_data::RawClientData;
+use frame::deps::sp_core::hexdisplay::AsBytesRef;
 use traits_authn::{HashedUserId, UserChallengeResponse};
 
 impl<Cx> Assertion<Cx>
@@ -18,8 +20,21 @@ where
     Cx: Parameter + Copy + 'static,
 {
     fn is_valid(&self) -> bool {
-        TryInto::<RawClientData>::try_into(self.client_data.to_vec())
-            .is_ok_and(|client_data| client_data.request_type().eq(&String::from("webauthn.get")))
+        let Ok(client_data): Result<RawClientData, _> = self.client_data.to_vec().try_into() else {
+            return false;
+        };
+        let Ok(authenticator_data): Result<AuthenticatorData, _> =
+            self.authenticator_data.as_bytes_ref().try_into()
+        else {
+            return false;
+        };
+
+        // clientData.type == "webauthn.create"
+        client_data.request_type().eq(&String::from("webauthn.get"))
+            // Check UP
+            && authenticator_data
+                .flags
+                .contains(AuthenticatorFlags::USER_PRESENT)
     }
 
     fn used_challenge(&self) -> (Cx, Challenge) {
