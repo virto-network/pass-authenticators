@@ -15,6 +15,7 @@ use traits_authn::{Challenger, ExtrinsicContext, HashedUserId};
 const USER: HashedUserId = s("alice");
 parameter_types! {
     pub Alice: sr25519::Pair = Keyring::Alice.pair();
+    pub UserAddress: AccountId = Pass::address_for(USER);
 }
 
 fn make_signature(xtc: &impl ExtrinsicContext) -> (SignedMessage<u64>, AccountId, MultiSignature) {
@@ -59,7 +60,7 @@ mod registration {
     #[test]
     fn registration_works_if_attestation_is_valid() {
         new_test_ext().execute_with(|| {
-            let (message, public, signature) = make_signature(&[]);
+            let (message, public, signature) = make_signature(&UserAddress::get().encode());
 
             assert_ok!(Pass::register(
                 RuntimeOrigin::root(),
@@ -80,7 +81,7 @@ mod authentication {
     fn new_test_ext() -> TestExternalities {
         let mut t = super::new_test_ext();
         t.execute_with(|| {
-            let (message, public, signature) = make_signature(&[]);
+            let (message, public, signature) = make_signature(&UserAddress::get().encode());
 
             assert_ok!(Pass::register(
                 RuntimeOrigin::root(),
