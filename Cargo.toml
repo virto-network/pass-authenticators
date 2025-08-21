@@ -43,17 +43,17 @@ serde = { version = "1.0.219", default-features = false }
 serde_json = { version = "1.0.141", default-features = false }
 
 # Substrate
-sp-core = { version = "36.1.0", default-features = false }
-sp-runtime = { version = "41.1.0", default-features = false }
+sp-core = { version = "37.0.0", default-features = false }
+sp-runtime = { version = "42.0.0", default-features = false }
 
 # FRAME
-frame = { version = "0.9.1", package = "polkadot-sdk-frame", default-features = false }
-pallet-balances = { version = "41.1.0", default-features = false }
-pallet-scheduler = { version = "41.0.0", default-features = false }
+frame = { version = "0.10.0", package = "polkadot-sdk-frame", default-features = false }
+pallet-balances = { version = "42.0.0", default-features = false }
+pallet-scheduler = { version = "42.0.0", default-features = false }
 
 # FRAME Contrib
-traits-authn = { git = "https://github.com/virto-network/frame-contrib", package = "fc-traits-authn", default-features = false }
-pallet-pass = { git = "https://github.com/virto-network/frame-contrib", package = "fc-pallet-pass", default-features = false }
+traits-authn = { git = "https://github.com/virto-network/frame-contrib", branch = "feat/update-to-stable2506", package = "fc-traits-authn", default-features = false }
+pallet-pass = { git = "https://github.com/virto-network/frame-contrib", branch = "feat/update-to-stable2506", package = "fc-pallet-pass", default-features = false }
 
 [workspace]
 members = ["authenticators/*"]
