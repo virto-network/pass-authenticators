@@ -90,9 +90,7 @@ impl Challenger for BlockChallenger {
 }
 
 impl pallet_pass::Config for Test {
-    type RuntimeEvent = RuntimeEvent;
     type PalletsOrigin = OriginCaller;
-    type RuntimeCall = RuntimeCall;
     type WeightInfo = ();
     type RegisterOrigin = EnsureRootWithSuccess<Self::AccountId, RootAccount>;
     type AddressGenerator = ();
