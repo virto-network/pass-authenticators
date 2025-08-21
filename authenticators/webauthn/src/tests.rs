@@ -4,14 +4,22 @@ use traits_authn::HashedUserId;
 
 pub const USER: HashedUserId = s("the_user");
 
+parameter_types! {
+    pub UserAddress: AccountId = Pass::address_for(USER);
+}
+
 mod attestation {
     use super::*;
 
     #[test]
     fn registration_fails_if_attestation_is_invalid() {
         new_test_ext(1, false).execute_with(|client| {
-            let (_, mut attestation) =
-                client.attestation(USER, System::block_number(), &[], AuthorityId::get());
+            let (_, mut attestation) = client.attestation(
+                USER,
+                System::block_number(),
+                &UserAddress::get().encode(),
+                AuthorityId::get(),
+            );
 
             // Alters "challenge", so this will fail
             let c_data = String::from_utf8(attestation.client_data.into())
@@ -39,7 +47,12 @@ mod attestation {
                 RuntimeOrigin::root(),
                 USER,
                 client
-                    .attestation(USER, System::block_number(), &[], AuthorityId::get())
+                    .attestation(
+                        USER,
+                        System::block_number(),
+                        &UserAddress::get().encode(),
+                        AuthorityId::get()
+                    )
                     .1
             ));
         })
@@ -54,8 +67,12 @@ mod assertion {
     #[test]
     fn authentication_fails_if_credentials_are_invalid() {
         new_test_ext(2, false).execute_with(|client| {
-            let (credential_id, attestation) =
-                client.attestation(USER, System::block_number(), &[], AuthorityId::get());
+            let (credential_id, attestation) = client.attestation(
+                USER,
+                System::block_number(),
+                &UserAddress::get().encode(),
+                AuthorityId::get(),
+            );
 
             assert_ok!(Pass::register(
                 RuntimeOrigin::root(),
@@ -93,8 +110,12 @@ mod assertion {
     #[test]
     fn authentication_works_if_credentials_are_valid() {
         new_test_ext(2, false).execute_with(|client| {
-            let (credential_id, attestation) =
-                client.attestation(USER, System::block_number(), &[], AuthorityId::get());
+            let (credential_id, attestation) = client.attestation(
+                USER,
+                System::block_number(),
+                &UserAddress::get().encode(),
+                AuthorityId::get(),
+            );
 
             assert_ok!(Pass::register(
                 RuntimeOrigin::root(),
@@ -131,8 +152,12 @@ mod assertion {
     #[test]
     fn authentication_works_when_sing_count_changes() {
         new_test_ext(3, true).execute_with(|client| {
-            let (credential_id, attestation) =
-                client.attestation(USER, System::block_number(), &[], AuthorityId::get());
+            let (credential_id, attestation) = client.attestation(
+                USER,
+                System::block_number(),
+                &UserAddress::get().encode(),
+                AuthorityId::get(),
+            );
 
             assert_ok!(Pass::register(
                 RuntimeOrigin::root(),
