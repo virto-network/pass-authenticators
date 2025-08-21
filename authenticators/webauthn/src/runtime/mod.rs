@@ -1,5 +1,6 @@
 use super::*;
 
+use alloc::string::String;
 use frame::prelude::Parameter;
 use traits_authn::{AuthorityId, Challenge, DeviceChallengeResponse, DeviceId};
 
