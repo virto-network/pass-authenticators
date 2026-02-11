@@ -14,6 +14,7 @@ mod tests;
 mod runtime {
     use super::*;
     use traits_authn::{prelude::*, util::*};
+    const LOG_TARGET: &str = "pass_authenticators_substrate_keys";
 
     mod key_registration;
     mod key_signature;

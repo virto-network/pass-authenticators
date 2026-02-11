@@ -29,6 +29,8 @@ impl<Cx: Parameter + 'static> DeviceChallengeResponse<Cx> for KeyRegistration<Cx
 
 impl<Cx: Parameter> VerifyCredential<KeySignature<Cx>> for AccountId32 {
     fn verify(&mut self, credential: &KeySignature<Cx>) -> Option<()> {
+        log::debug!(target: LOG_TARGET, "Verifying signature ({:?}) for the message {:?}",
+            credential.signature, credential.message);
         credential
             .signature
             .verify(credential.message.message().as_ref(), self)

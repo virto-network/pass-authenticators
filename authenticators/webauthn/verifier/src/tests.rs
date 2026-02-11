@@ -24,8 +24,8 @@ fn test_verify_webauthn_response_with_generated_data() {
     // Step 2: Extract the affine coordinates (x, y)
     // SAFETY: These unwraps are safe because the public_key above is not compressed (false
     // parameter) therefore x and y are guaranteed to contain values.
-    let x = public_key.x().unwrap().as_slice().to_vec();
-    let y = public_key.y().unwrap().as_slice().to_vec();
+    let x = public_key.x().unwrap().to_vec();
+    let y = public_key.y().unwrap().to_vec();
 
     // Step 3: Construct the COSE key pair
     let public_key_cose = CoseKeyBuilder::new_ec2_pub_key(EllipticCurve::P_256, x, y)
@@ -76,8 +76,8 @@ fn test_verify_webauthn_response_with_invalid_signature() {
     let public_key = private_key.verifying_key().to_encoded_point(false); // Uncompressed point
 
     // Step 2: Extract the affine coordinates (x, y)
-    let x = public_key.x().unwrap().as_slice().to_vec();
-    let y = public_key.y().unwrap().as_slice().to_vec();
+    let x = public_key.x().unwrap().to_vec();
+    let y = public_key.y().unwrap().to_vec();
 
     // Step 3: Construct the COSE key pair
     let public_key_cose = CoseKeyBuilder::new_ec2_pub_key(EllipticCurve::P_256, x, y)
