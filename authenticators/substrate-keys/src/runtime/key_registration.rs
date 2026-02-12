@@ -10,6 +10,11 @@ impl<Ch: Challenger, AuthId> From<KeyRegistration<CxOf<Ch>>> for Device<Ch, Auth
 
 impl<Cx: Parameter + 'static> DeviceChallengeResponse<Cx> for KeyRegistration<Cx> {
     fn is_valid(&self) -> bool {
+        log::debug!(target: LOG_TARGET, "Verifying registration of {:?} for the message {:?} with signature {:?}",
+            self.public,
+            self.message.message().as_ref(),
+            self.signature.encode(),
+        );
         self.signature
             .verify(self.message.message().as_ref(), &self.public)
     }
@@ -24,16 +29,5 @@ impl<Cx: Parameter + 'static> DeviceChallengeResponse<Cx> for KeyRegistration<Cx
 
     fn device_id(&self) -> &DeviceId {
         self.public.as_ref()
-    }
-}
-
-impl<Cx: Parameter> VerifyCredential<KeySignature<Cx>> for AccountId32 {
-    fn verify(&mut self, credential: &KeySignature<Cx>) -> Option<()> {
-        log::debug!(target: LOG_TARGET, "Verifying signature ({:?}) for the message {:?}",
-            credential.signature, credential.message);
-        credential
-            .signature
-            .verify(credential.message.message().as_ref(), self)
-            .then_some(())
     }
 }
