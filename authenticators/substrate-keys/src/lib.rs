@@ -44,8 +44,8 @@ pub struct SignedMessage<Cx> {
     Clone, Encode, Decode, DecodeWithMemTracking, TypeInfo, MaxEncodedLen, PartialEq, Eq, Debug,
 )]
 pub struct KeyRegistration<Cx> {
-    pub message: SignedMessage<Cx>,
     pub public: AccountId32,
+    pub message: SignedMessage<Cx>,
     pub signature: MultiSignature,
 }
 

@@ -5,8 +5,8 @@ impl<Cx: Encode> SignedMessage<Cx> {
     pub fn message(&self) -> impl AsRef<[u8]> {
         [
             self.context.encode().as_ref(),
-            &self.authority_id[..],
             &self.challenge[..],
+            &self.authority_id[..],
         ]
         .concat()
     }
