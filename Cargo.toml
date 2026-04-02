@@ -42,8 +42,12 @@ scale-info = { version = "2.11.6", default-features = false, features = [
 serde = { version = "1.0.219", default-features = false }
 serde_json = { version = "1.0.141", default-features = false }
 
+# Crypto
+k256 = { version = "0.13.4", default-features = false, features = ["schnorr", "alloc", "pkcs8"] }
+
 # Substrate
 sp-core = { version = "39.0.0", default-features = false }
+sp-io = { version = "44.0.0", default-features = false }
 sp-runtime = { version = "45.0.0", default-features = false }
 
 # FRAME
