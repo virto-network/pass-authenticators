@@ -1,0 +1,36 @@
+use super::*;
+
+extern crate alloc;
+use alloc::vec::Vec;
+
+impl<Cx: Encode> SignedMessage<Cx> {
+    /// The domain-separated payload bytes.
+    /// Prefixed with `b"SOL"` to prevent cross-authenticator signature replay.
+    pub fn payload(&self) -> Vec<u8> {
+        [
+            b"SOL".as_slice(),
+            self.context.encode().as_ref(),
+            &self.challenge[..],
+            &self.authority_id[..],
+        ]
+        .concat()
+    }
+}
+
+/// Verify an Ed25519 signature against a Solana public key.
+pub fn verify_ed25519(pubkey: &SolPubkey, message: &[u8], signature: &[u8; 64]) -> bool {
+    // Use sp_io's ed25519 verification
+    let ed_pub = sp_core::ed25519::Public::from_raw(pubkey.0);
+    let ed_sig = sp_core::ed25519::Signature::from_raw(*signature);
+    sp_io::crypto::ed25519_verify(&ed_sig, message, &ed_pub)
+}
+
+#[cfg(feature = "full-crypto")]
+impl<Cx: Encode> SignedMessage<Cx> {
+    /// Sign the message payload with an Ed25519 key pair.
+    pub fn sign(&self, pair: &sp_core::ed25519::Pair) -> [u8; 64] {
+        use sp_core::Pair;
+        let payload = self.payload();
+        pair.sign(&payload).0
+    }
+}
