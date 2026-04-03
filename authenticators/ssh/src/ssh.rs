@@ -63,14 +63,9 @@ pub fn verify_ssh_ed25519(pubkey: &SshPubkey, signed_data: &[u8], signature: &[u
 }
 
 #[cfg(feature = "full-crypto")]
-pub trait Sign<Cx> {
+impl<Cx: Encode> SignedMessage<Cx> {
     /// Sign the SSHSIG-formatted data with an Ed25519 key pair.
-    fn sign(&self, pair: &sp_core::ed25519::Pair) -> [u8; 64];
-}
-
-#[cfg(feature = "full-crypto")]
-impl<Cx: Encode> Sign<Cx> for SignedMessage<Cx> {
-    fn sign(&self, pair: &sp_core::ed25519::Pair) -> [u8; 64] {
+    pub fn sign(&self, pair: &sp_core::ed25519::Pair) -> [u8; 64] {
         use sp_core::Pair;
         let data = self.ssh_signed_data();
         pair.sign(&data).0

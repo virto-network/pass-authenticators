@@ -1,7 +1,5 @@
 use crate::mock::*;
-use crate::{
-    eth::recover_eth_address, EthAddress, EthRegistration, EthSignature, Sign, SignedMessage,
-};
+use crate::{eth::recover_eth_address, EthAddress, EthRegistration, EthSignature, SignedMessage};
 use frame::{
     deps::sp_core::{ecdsa, Pair},
     testing_prelude::*,

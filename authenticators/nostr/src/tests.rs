@@ -1,5 +1,5 @@
 use crate::mock::*;
-use crate::{NostrPubkey, NostrRegistration, NostrSignature, Sign, SignedMessage};
+use crate::{NostrPubkey, NostrRegistration, NostrSignature, SignedMessage};
 use frame::testing_prelude::*;
 use frame::traits::TxBaseImplication;
 use traits_authn::{Challenger, ExtrinsicContext, HashedUserId};

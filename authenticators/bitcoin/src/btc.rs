@@ -95,20 +95,13 @@ fn hash160(data: &[u8]) -> [u8; 20] {
 }
 
 #[cfg(feature = "full-crypto")]
-pub trait Sign<Cx> {
+impl<Cx: Encode> SignedMessage<Cx> {
     /// Sign the message with a secp256k1 key, producing a 65-byte BIP-137 signature.
-    fn sign(&self, pair: &sp_core::ecdsa::Pair) -> [u8; 65];
-}
-
-#[cfg(feature = "full-crypto")]
-impl<Cx: Encode> Sign<Cx> for SignedMessage<Cx> {
-    fn sign(&self, pair: &sp_core::ecdsa::Pair) -> [u8; 65] {
+    pub fn sign(&self, pair: &sp_core::ecdsa::Pair) -> [u8; 65] {
         let hash = self.btc_message_hash();
         let raw_sig = pair.sign_prehashed(&hash);
-        // Convert to BIP-137 format: flag[1] || r[32] || s[32]
-        // Use compressed key flag (31 + recovery_id)
         let mut btc_sig = [0u8; 65];
-        btc_sig[0] = 31 + raw_sig.0[64]; // compressed flag + recovery_id
+        btc_sig[0] = 31 + raw_sig.0[64];
         btc_sig[1..].copy_from_slice(&raw_sig.0[..64]);
         btc_sig
     }

@@ -51,20 +51,14 @@ pub fn verify_schnorr(pubkey: &NostrPubkey, message_hash: &[u8; 32], signature: 
 }
 
 #[cfg(feature = "full-crypto")]
-pub trait Sign<Cx> {
+impl<Cx: Encode> SignedMessage<Cx> {
     /// Sign the BIP-340 tagged message hash with a Schnorr signing key.
-    fn sign(&self, signing_key: &k256::schnorr::SigningKey) -> [u8; 64];
-}
-
-#[cfg(feature = "full-crypto")]
-impl<Cx: Encode> Sign<Cx> for SignedMessage<Cx> {
-    fn sign(&self, signing_key: &k256::schnorr::SigningKey) -> [u8; 64] {
+    pub fn sign(&self, signing_key: &k256::schnorr::SigningKey) -> [u8; 64] {
         use k256::schnorr::signature::hazmat::PrehashSigner;
         let hash = self.message_hash();
         let sig: k256::schnorr::Signature = signing_key
             .sign_prehash(&hash)
             .expect("signing should not fail");
-        let bytes: [u8; 64] = sig.to_bytes().into();
-        bytes
+        sig.to_bytes().into()
     }
 }

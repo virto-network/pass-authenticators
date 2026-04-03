@@ -105,6 +105,3 @@ pub struct EthSignature<Cx> {
     /// 65-byte secp256k1 signature (r[32] || s[32] || v[1])
     pub signature: [u8; 65],
 }
-
-#[cfg(feature = "full-crypto")]
-pub use eth::Sign;

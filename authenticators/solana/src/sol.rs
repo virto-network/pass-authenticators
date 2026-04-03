@@ -26,14 +26,9 @@ pub fn verify_ed25519(pubkey: &SolPubkey, message: &[u8], signature: &[u8; 64]) 
 }
 
 #[cfg(feature = "full-crypto")]
-pub trait Sign<Cx> {
+impl<Cx: Encode> SignedMessage<Cx> {
     /// Sign the message payload with an Ed25519 key pair.
-    fn sign(&self, pair: &sp_core::ed25519::Pair) -> [u8; 64];
-}
-
-#[cfg(feature = "full-crypto")]
-impl<Cx: Encode> Sign<Cx> for SignedMessage<Cx> {
-    fn sign(&self, pair: &sp_core::ed25519::Pair) -> [u8; 64] {
+    pub fn sign(&self, pair: &sp_core::ed25519::Pair) -> [u8; 64] {
         use sp_core::Pair;
         let payload = self.payload();
         pair.sign(&payload).0

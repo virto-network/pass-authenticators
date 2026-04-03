@@ -62,8 +62,7 @@ fn make_eth_registration(
     };
     let pair = EthKey::get();
     let address = eth_address_of(&pair);
-    let signature =
-        <pass_ethereum::SignedMessage<u64> as pass_ethereum::Sign<u64>>::sign(&message, &pair);
+    let signature = message.sign(&pair);
     let attestation = PassDeviceAttestation::Eth(pass_ethereum::EthRegistration {
         address,
         message,
@@ -83,8 +82,7 @@ fn make_sol_registration(
     };
     let pair = SolKey::get();
     let pubkey = pass_solana::SolPubkey(pair.public().0);
-    let signature =
-        <pass_solana::SignedMessage<u64> as pass_solana::Sign<u64>>::sign(&message, &pair);
+    let signature = message.sign(&pair);
     let attestation = PassDeviceAttestation::Sol(pass_solana::SolRegistration {
         pubkey,
         message,
@@ -104,8 +102,7 @@ fn make_btc_registration(
     };
     let pair = BtcKey::get();
     let pubkey_hash = btc_pubkey_hash_of(&pair);
-    let signature =
-        <pass_bitcoin::SignedMessage<u64> as pass_bitcoin::Sign<u64>>::sign(&message, &pair);
+    let signature = message.sign(&pair);
     let attestation = PassDeviceAttestation::Btc(pass_bitcoin::BtcRegistration {
         pubkey_hash,
         message,
@@ -125,7 +122,7 @@ fn make_ssh_registration(
     };
     let pair = SshKey::get();
     let pubkey = pass_ssh::SshPubkey(pair.public().0);
-    let signature = <pass_ssh::SignedMessage<u64> as pass_ssh::Sign<u64>>::sign(&message, &pair);
+    let signature = message.sign(&pair);
     let attestation = PassDeviceAttestation::Ssh(pass_ssh::SshRegistration {
         pubkey,
         message,
@@ -143,8 +140,7 @@ fn make_eth_credential(xtc: &impl ExtrinsicContext) -> (pass_ethereum::EthAddres
     };
     let pair = EthKey::get();
     let address = eth_address_of(&pair);
-    let signature =
-        <pass_ethereum::SignedMessage<u64> as pass_ethereum::Sign<u64>>::sign(&message, &pair);
+    let signature = message.sign(&pair);
     let credential = PassCredential::Eth(pass_ethereum::EthSignature {
         user_id: ETH_USER,
         message,
@@ -190,10 +186,7 @@ mod cross_authenticator {
                 challenge: BlockChallenger::generate(&context, &xtc),
                 authority_id: PassAuthority::get(),
             };
-            let eth_sig = <pass_ethereum::SignedMessage<u64> as pass_ethereum::Sign<u64>>::sign(
-                &eth_msg,
-                &EthKey::get(),
-            );
+            let eth_sig = eth_msg.sign(&EthKey::get());
 
             // Use SOL device_id with ETH credential → must fail
             let sol_pubkey = pass_solana::SolPubkey(SolKey::get().public().0);
@@ -235,10 +228,7 @@ mod cross_authenticator {
                 challenge: BlockChallenger::generate(&context, &xtc),
                 authority_id: PassAuthority::get(),
             };
-            let sol_sig = <pass_solana::SignedMessage<u64> as pass_solana::Sign<u64>>::sign(
-                &sol_msg,
-                &SolKey::get(),
-            );
+            let sol_sig = sol_msg.sign(&SolKey::get());
 
             let eth_addr = eth_address_of(&EthKey::get());
             let ext = pallet_pass::PassAuthenticate::<Test>::from(
@@ -279,10 +269,7 @@ mod cross_authenticator {
                 challenge: BlockChallenger::generate(&context, &xtc),
                 authority_id: PassAuthority::get(),
             };
-            let btc_sig = <pass_bitcoin::SignedMessage<u64> as pass_bitcoin::Sign<u64>>::sign(
-                &btc_msg,
-                &BtcKey::get(),
-            );
+            let btc_sig = btc_msg.sign(&BtcKey::get());
 
             let ssh_pubkey = pass_ssh::SshPubkey(SshKey::get().public().0);
             let ext = pallet_pass::PassAuthenticate::<Test>::from(
@@ -348,10 +335,7 @@ mod cross_authenticator {
                 challenge: BlockChallenger::generate(&context, &xtc),
                 authority_id: PassAuthority::get(),
             };
-            let sol_sig = <pass_solana::SignedMessage<u64> as pass_solana::Sign<u64>>::sign(
-                &sol_msg,
-                &SolKey::get(),
-            );
+            let sol_sig = sol_msg.sign(&SolKey::get());
             let ext = pallet_pass::PassAuthenticate::<Test>::from(
                 SolKey::get().public().0,
                 PassCredential::Sol(pass_solana::SolSignature {
@@ -377,10 +361,7 @@ mod cross_authenticator {
                 challenge: BlockChallenger::generate(&context, &xtc),
                 authority_id: PassAuthority::get(),
             };
-            let ssh_sig = <pass_ssh::SignedMessage<u64> as pass_ssh::Sign<u64>>::sign(
-                &ssh_msg,
-                &SshKey::get(),
-            );
+            let ssh_sig = ssh_msg.sign(&SshKey::get());
             let ext = pallet_pass::PassAuthenticate::<Test>::from(
                 SshKey::get().public().0,
                 PassCredential::Ssh(pass_ssh::SshSignature {
@@ -429,10 +410,7 @@ mod device_isolation {
                 challenge: BlockChallenger::generate(&context, &sol_addr.encode()),
                 authority_id: PassAuthority::get(),
             };
-            let sol_sig = <pass_solana::SignedMessage<u64> as pass_solana::Sign<u64>>::sign(
-                &sol_msg,
-                &shared_key,
-            );
+            let sol_sig = sol_msg.sign(&shared_key);
             assert_ok!(PassPallet::register(
                 RuntimeOrigin::root(),
                 sol_user,
@@ -450,8 +428,7 @@ mod device_isolation {
                 challenge: BlockChallenger::generate(&context, &ssh_addr.encode()),
                 authority_id: PassAuthority::get(),
             };
-            let ssh_sig =
-                <pass_ssh::SignedMessage<u64> as pass_ssh::Sign<u64>>::sign(&ssh_msg, &shared_key);
+            let ssh_sig = ssh_msg.sign(&shared_key);
 
             assert_noop!(
                 PassPallet::register(
@@ -487,9 +464,7 @@ mod authority {
                 challenge: BlockChallenger::generate(&context, &EthUserAddress::get().encode()),
                 authority_id: bad_authority,
             };
-            let signature = <pass_ethereum::SignedMessage<u64> as pass_ethereum::Sign<u64>>::sign(
-                &message, &pair,
-            );
+            let signature = message.sign(&pair);
 
             assert_noop!(
                 PassPallet::register(

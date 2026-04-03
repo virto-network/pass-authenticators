@@ -1,5 +1,5 @@
 use crate::mock::*;
-use crate::{Sign, SignedMessage, SolPubkey, SolRegistration, SolSignature};
+use crate::{SignedMessage, SolPubkey, SolRegistration, SolSignature};
 use frame::{
     deps::sp_core::{ed25519, Pair},
     testing_prelude::*,

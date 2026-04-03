@@ -1,5 +1,5 @@
 use crate::mock::*;
-use crate::{Sign, SignedMessage, SshPubkey, SshRegistration, SshSignature};
+use crate::{SignedMessage, SshPubkey, SshRegistration, SshSignature};
 use frame::{
     deps::sp_core::{ed25519, Pair},
     testing_prelude::*,

@@ -103,6 +103,3 @@ pub struct BtcSignature<Cx> {
     /// 65-byte recoverable signature (recovery_flag[1] || r[32] || s[32])
     pub signature: [u8; 65],
 }
-
-#[cfg(feature = "full-crypto")]
-pub use btc::Sign;

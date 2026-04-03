@@ -1,6 +1,6 @@
 use crate::mock::*;
 use crate::{
-    btc::recover_btc_pubkey_hash, BtcPubkeyHash, BtcRegistration, BtcSignature, Sign, SignedMessage,
+    btc::recover_btc_pubkey_hash, BtcPubkeyHash, BtcRegistration, BtcSignature, SignedMessage,
 };
 use frame::{
     deps::sp_core::{ecdsa, Pair},

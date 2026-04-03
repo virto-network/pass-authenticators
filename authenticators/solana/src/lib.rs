@@ -85,6 +85,3 @@ pub struct SolSignature<Cx> {
     /// 64-byte Ed25519 signature
     pub signature: [u8; 64],
 }
-
-#[cfg(feature = "full-crypto")]
-pub use sol::Sign;

@@ -85,6 +85,3 @@ pub struct NostrSignature<Cx> {
     /// 64-byte BIP-340 Schnorr signature
     pub signature: [u8; 64],
 }
-
-#[cfg(feature = "full-crypto")]
-pub use schnorr::Sign;

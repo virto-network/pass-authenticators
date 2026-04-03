@@ -55,14 +55,9 @@ pub fn recover_eth_address(message_hash: &[u8; 32], signature: &[u8; 65]) -> Opt
 }
 
 #[cfg(feature = "full-crypto")]
-pub trait Sign<Cx> {
+impl<Cx: Encode> SignedMessage<Cx> {
     /// Sign the message with a secp256k1 key, producing a 65-byte Ethereum-style signature.
-    fn sign(&self, pair: &sp_core::ecdsa::Pair) -> [u8; 65];
-}
-
-#[cfg(feature = "full-crypto")]
-impl<Cx: Encode> Sign<Cx> for SignedMessage<Cx> {
-    fn sign(&self, pair: &sp_core::ecdsa::Pair) -> [u8; 65] {
+    pub fn sign(&self, pair: &sp_core::ecdsa::Pair) -> [u8; 65] {
         let hash = self.eth_message_hash();
         pair.sign_prehashed(&hash).0
     }
