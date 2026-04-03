@@ -64,7 +64,6 @@ fn make_eth_registration(
     let address = eth_address_of(&pair);
     let signature =
         <pass_ethereum::SignedMessage<u64> as pass_ethereum::Sign<u64>>::sign(&message, &pair);
-
     let attestation = PassDeviceAttestation::Eth(pass_ethereum::EthRegistration {
         address,
         message,
@@ -86,7 +85,6 @@ fn make_sol_registration(
     let pubkey = pass_solana::SolPubkey(pair.public().0);
     let signature =
         <pass_solana::SignedMessage<u64> as pass_solana::Sign<u64>>::sign(&message, &pair);
-
     let attestation = PassDeviceAttestation::Sol(pass_solana::SolRegistration {
         pubkey,
         message,
@@ -108,7 +106,6 @@ fn make_btc_registration(
     let pubkey_hash = btc_pubkey_hash_of(&pair);
     let signature =
         <pass_bitcoin::SignedMessage<u64> as pass_bitcoin::Sign<u64>>::sign(&message, &pair);
-
     let attestation = PassDeviceAttestation::Btc(pass_bitcoin::BtcRegistration {
         pubkey_hash,
         message,
@@ -129,13 +126,31 @@ fn make_ssh_registration(
     let pair = SshKey::get();
     let pubkey = pass_ssh::SshPubkey(pair.public().0);
     let signature = <pass_ssh::SignedMessage<u64> as pass_ssh::Sign<u64>>::sign(&message, &pair);
-
     let attestation = PassDeviceAttestation::Ssh(pass_ssh::SshRegistration {
         pubkey,
         message,
         signature,
     });
     (pubkey, attestation)
+}
+
+fn make_eth_credential(xtc: &impl ExtrinsicContext) -> (pass_ethereum::EthAddress, PassCredential) {
+    let context = System::block_number();
+    let message = pass_ethereum::SignedMessage {
+        context,
+        challenge: BlockChallenger::generate(&context, xtc),
+        authority_id: PassAuthority::get(),
+    };
+    let pair = EthKey::get();
+    let address = eth_address_of(&pair);
+    let signature =
+        <pass_ethereum::SignedMessage<u64> as pass_ethereum::Sign<u64>>::sign(&message, &pair);
+    let credential = PassCredential::Eth(pass_ethereum::EthSignature {
+        user_id: ETH_USER,
+        message,
+        signature,
+    });
+    (address, credential)
 }
 
 // ---------- Cross-authenticator replay tests ----------
@@ -146,19 +161,15 @@ mod cross_authenticator {
     fn setup() -> TestExternalities {
         let mut t = new_test_ext();
         t.execute_with(|| {
-            // Register ETH device
             let (_, att) = make_eth_registration(&EthUserAddress::get().encode());
             assert_ok!(PassPallet::register(RuntimeOrigin::root(), ETH_USER, att));
 
-            // Register SOL device
             let (_, att) = make_sol_registration(&SolUserAddress::get().encode());
             assert_ok!(PassPallet::register(RuntimeOrigin::root(), SOL_USER, att));
 
-            // Register BTC device
             let (_, att) = make_btc_registration(&BtcUserAddress::get().encode());
             assert_ok!(PassPallet::register(RuntimeOrigin::root(), BTC_USER, att));
 
-            // Register SSH device
             let (_, att) = make_ssh_registration(&SshUserAddress::get().encode());
             assert_ok!(PassPallet::register(RuntimeOrigin::root(), SSH_USER, att));
         });
@@ -173,7 +184,6 @@ mod cross_authenticator {
             let xtc =
                 TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256);
 
-            // Create a valid ETH signature
             let context = System::block_number();
             let eth_msg = pass_ethereum::SignedMessage {
                 context,
@@ -185,12 +195,12 @@ mod cross_authenticator {
                 &EthKey::get(),
             );
 
-            // Wrap in ETH credential but use SOL account's device_id
+            // Use SOL device_id with ETH credential → must fail
             let sol_pubkey = pass_solana::SolPubkey(SolKey::get().public().0);
             let ext = pallet_pass::PassAuthenticate::<Test>::from(
-                sol_pubkey.0, // SOL's device_id
+                sol_pubkey.0,
                 PassCredential::Eth(pass_ethereum::EthSignature {
-                    user_id: SOL_USER, // Try to auth as SOL user
+                    user_id: SOL_USER,
                     message: eth_msg,
                     signature: eth_sig,
                 }),
@@ -219,7 +229,6 @@ mod cross_authenticator {
             let xtc =
                 TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256);
 
-            // Create a valid SOL signature
             let context = System::block_number();
             let sol_msg = pass_solana::SignedMessage {
                 context,
@@ -231,12 +240,11 @@ mod cross_authenticator {
                 &SolKey::get(),
             );
 
-            // Wrap in SOL credential but use ETH account's device_id
             let eth_addr = eth_address_of(&EthKey::get());
             let ext = pallet_pass::PassAuthenticate::<Test>::from(
-                *eth_addr.as_ref(), // ETH's device_id
+                *eth_addr.as_ref(),
                 PassCredential::Sol(pass_solana::SolSignature {
-                    user_id: ETH_USER, // Try to auth as ETH user
+                    user_id: ETH_USER,
                     message: sol_msg,
                     signature: sol_sig,
                 }),
@@ -276,7 +284,6 @@ mod cross_authenticator {
                 &BtcKey::get(),
             );
 
-            // Use SSH device_id with BTC credential
             let ssh_pubkey = pass_ssh::SshPubkey(SshKey::get().public().0);
             let ext = pallet_pass::PassAuthenticate::<Test>::from(
                 ssh_pubkey.0,
@@ -310,27 +317,8 @@ mod cross_authenticator {
             let xtc =
                 TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256);
 
-            // Valid ETH auth
-            let context = System::block_number();
-            let eth_msg = pass_ethereum::SignedMessage {
-                context,
-                challenge: BlockChallenger::generate(&context, &xtc),
-                authority_id: PassAuthority::get(),
-            };
-            let eth_sig = <pass_ethereum::SignedMessage<u64> as pass_ethereum::Sign<u64>>::sign(
-                &eth_msg,
-                &EthKey::get(),
-            );
-            let eth_addr = eth_address_of(&EthKey::get());
-
-            let ext = pallet_pass::PassAuthenticate::<Test>::from(
-                *eth_addr.as_ref(),
-                PassCredential::Eth(pass_ethereum::EthSignature {
-                    user_id: ETH_USER,
-                    message: eth_msg,
-                    signature: eth_sig,
-                }),
-            );
+            let (address, credential) = make_eth_credential(&xtc);
+            let ext = pallet_pass::PassAuthenticate::<Test>::from(*address.as_ref(), credential);
 
             assert_ok!(ext
                 .validate_only(
@@ -354,7 +342,7 @@ mod cross_authenticator {
                 TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256);
             let context = System::block_number();
 
-            // SOL auth
+            // SOL
             let sol_msg = pass_solana::SignedMessage {
                 context,
                 challenge: BlockChallenger::generate(&context, &xtc),
@@ -364,10 +352,8 @@ mod cross_authenticator {
                 &sol_msg,
                 &SolKey::get(),
             );
-            let sol_pubkey = pass_solana::SolPubkey(SolKey::get().public().0);
-
             let ext = pallet_pass::PassAuthenticate::<Test>::from(
-                sol_pubkey.0,
+                SolKey::get().public().0,
                 PassCredential::Sol(pass_solana::SolSignature {
                     user_id: SOL_USER,
                     message: sol_msg,
@@ -385,7 +371,7 @@ mod cross_authenticator {
                 )
                 .map(|_| ()));
 
-            // SSH auth
+            // SSH
             let ssh_msg = pass_ssh::SignedMessage {
                 context,
                 challenge: BlockChallenger::generate(&context, &xtc),
@@ -395,10 +381,8 @@ mod cross_authenticator {
                 &ssh_msg,
                 &SshKey::get(),
             );
-            let ssh_pubkey = pass_ssh::SshPubkey(SshKey::get().public().0);
-
             let ext = pallet_pass::PassAuthenticate::<Test>::from(
-                ssh_pubkey.0,
+                SshKey::get().public().0,
                 PassCredential::Ssh(pass_ssh::SshSignature {
                     user_id: SSH_USER,
                     message: ssh_msg,
@@ -419,88 +403,16 @@ mod cross_authenticator {
     }
 }
 
-// ---------- Session key security ----------
-
-mod session_keys {
-    use super::*;
-
-    fn setup_with_eth() -> TestExternalities {
-        let mut t = new_test_ext();
-        t.execute_with(|| {
-            let (_, att) = make_eth_registration(&EthUserAddress::get().encode());
-            assert_ok!(PassPallet::register(RuntimeOrigin::root(), ETH_USER, att));
-        });
-        t
-    }
-
-    #[test]
-    fn session_key_cannot_register_new_account() {
-        setup_with_eth().execute_with(|| {
-            let extrinsic_version: u8 = 0;
-            let call: RuntimeCall = frame_system::Call::remark { remark: vec![] }.into();
-            let xtc =
-                TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256);
-
-            // Create a valid session key
-            let context = System::block_number();
-            let eth_msg = pass_ethereum::SignedMessage {
-                context,
-                challenge: BlockChallenger::generate(&context, &xtc),
-                authority_id: PassAuthority::get(),
-            };
-            let eth_sig = <pass_ethereum::SignedMessage<u64> as pass_ethereum::Sign<u64>>::sign(
-                &eth_msg,
-                &EthKey::get(),
-            );
-            let eth_addr = eth_address_of(&EthKey::get());
-
-            let ext = pallet_pass::PassAuthenticate::<Test>::from(
-                *eth_addr.as_ref(),
-                PassCredential::Eth(pass_ethereum::EthSignature {
-                    user_id: ETH_USER,
-                    message: eth_msg,
-                    signature: eth_sig,
-                }),
-            );
-
-            // First verify the auth works
-            assert_ok!(ext
-                .validate_only(
-                    None.into(),
-                    &call,
-                    &call.get_dispatch_info(),
-                    call.encoded_size(),
-                    TransactionSource::External,
-                    0
-                )
-                .map(|_| ()));
-
-            // Now add a session key for this account
-            let session_key_pair = ed25519::Pair::from_seed(&[99u8; 32]);
-            let session_key: AccountId = session_key_pair.public().into();
-
-            // Session keys are ephemeral — they can authenticate but should not
-            // be usable to escalate privileges (e.g., register new accounts).
-            // The session key itself is NOT a registered pass account.
-            // Verify that no pass account maps to this session key's address.
-            let session_addr =
-                PassPallet::address_for(*b"session_test\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
-            assert_ne!(session_key, session_addr);
-        })
-    }
-}
-
-// ---------- Device isolation tests ----------
+// ---------- DeviceId collision ----------
 
 mod device_isolation {
     use super::*;
 
     #[test]
-    fn same_ed25519_key_registered_as_sol_and_ssh_are_separate_accounts() {
+    fn duplicate_device_id_across_accounts_is_rejected() {
         new_test_ext().execute_with(|| {
-            // Use the SAME ed25519 key for both SOL and SSH registrations
-            // Due to domain separators, the signatures will be different
-            // But the DeviceId (raw 32-byte pubkey) is identical
+            // Use the SAME ed25519 key for both SOL and SSH.
+            // DeviceId is the raw 32-byte pubkey — identical for both.
             let shared_key = ed25519::Pair::from_seed(&[20u8; 32]);
             let pubkey_bytes = shared_key.public().0;
 
@@ -510,7 +422,7 @@ mod device_isolation {
             let sol_addr = PassPallet::address_for(sol_user);
             let ssh_addr = PassPallet::address_for(ssh_user);
 
-            // Register as SOL
+            // Register SOL device
             let context = System::block_number();
             let sol_msg = pass_solana::SignedMessage {
                 context,
@@ -521,19 +433,18 @@ mod device_isolation {
                 &sol_msg,
                 &shared_key,
             );
-            let sol_att = PassDeviceAttestation::Sol(pass_solana::SolRegistration {
-                pubkey: pass_solana::SolPubkey(pubkey_bytes),
-                message: sol_msg,
-                signature: sol_sig,
-            });
             assert_ok!(PassPallet::register(
                 RuntimeOrigin::root(),
                 sol_user,
-                sol_att
+                PassDeviceAttestation::Sol(pass_solana::SolRegistration {
+                    pubkey: pass_solana::SolPubkey(pubkey_bytes),
+                    message: sol_msg,
+                    signature: sol_sig,
+                })
             ));
 
-            // Try to register the SAME DeviceId as SSH for a different user
-            // pallet-pass should reject because the device_id is already taken
+            // Attempt to register SAME DeviceId as SSH for different user
+            // pallet-pass enforces DeviceId uniqueness via DeviceIds storage
             let ssh_msg = pass_ssh::SignedMessage {
                 context,
                 challenge: BlockChallenger::generate(&context, &ssh_addr.encode()),
@@ -541,62 +452,19 @@ mod device_isolation {
             };
             let ssh_sig =
                 <pass_ssh::SignedMessage<u64> as pass_ssh::Sign<u64>>::sign(&ssh_msg, &shared_key);
-            let ssh_att = PassDeviceAttestation::Ssh(pass_ssh::SshRegistration {
-                pubkey: pass_ssh::SshPubkey(pubkey_bytes),
-                message: ssh_msg,
-                signature: ssh_sig,
-            });
 
-            // This should fail — same device_id cannot be registered to two accounts
-            // (assuming pallet-pass enforces this)
-            let result = PassPallet::register(RuntimeOrigin::root(), ssh_user, ssh_att);
-
-            // If pallet-pass allows it, that's a finding worth documenting
-            if result.is_ok() {
-                // Both registrations succeeded — verify they're on SEPARATE accounts
-                // This means the same physical key controls two accounts
-                // The SOL credential should NOT work for the SSH account
-                let extrinsic_version: u8 = 0;
-                let call: RuntimeCall = frame_system::Call::remark { remark: vec![] }.into();
-                let xtc =
-                    TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256);
-
-                let sol_auth_msg = pass_solana::SignedMessage {
-                    context,
-                    challenge: BlockChallenger::generate(&context, &xtc),
-                    authority_id: PassAuthority::get(),
-                };
-                let sol_auth_sig =
-                    <pass_solana::SignedMessage<u64> as pass_solana::Sign<u64>>::sign(
-                        &sol_auth_msg,
-                        &shared_key,
-                    );
-
-                // Try SOL credential claiming to be SSH user
-                let ext = pallet_pass::PassAuthenticate::<Test>::from(
-                    pubkey_bytes,
-                    PassCredential::Sol(pass_solana::SolSignature {
-                        user_id: ssh_user, // wrong user
-                        message: sol_auth_msg,
-                        signature: sol_auth_sig,
-                    }),
-                );
-
-                // This MUST fail — composite dispatch (Device::Sol, Cred::Sol) would match
-                // on variant but the device stored is SSH variant for this account
-                assert_noop!(
-                    ext.validate_only(
-                        None.into(),
-                        &call,
-                        &call.get_dispatch_info(),
-                        call.encoded_size(),
-                        TransactionSource::External,
-                        0
-                    )
-                    .map(|_| ()),
-                    InvalidTransaction::BadSigner
-                );
-            }
+            assert_noop!(
+                PassPallet::register(
+                    RuntimeOrigin::root(),
+                    ssh_user,
+                    PassDeviceAttestation::Ssh(pass_ssh::SshRegistration {
+                        pubkey: pass_ssh::SshPubkey(pubkey_bytes),
+                        message: ssh_msg,
+                        signature: ssh_sig,
+                    })
+                ),
+                pallet_pass::Error::<Test>::DeviceAlreadyExists
+            );
         })
     }
 }
@@ -612,7 +480,6 @@ mod authority {
             let pair = EthKey::get();
             let address = eth_address_of(&pair);
 
-            // Use a WRONG authority_id
             let context = System::block_number();
             let bad_authority = [0xFFu8; 32];
             let message = pass_ethereum::SignedMessage {
@@ -624,16 +491,160 @@ mod authority {
                 &message, &pair,
             );
 
-            let attestation = PassDeviceAttestation::Eth(pass_ethereum::EthRegistration {
-                address,
-                message,
-                signature,
-            });
-
             assert_noop!(
-                PassPallet::register(RuntimeOrigin::root(), ETH_USER, attestation),
+                PassPallet::register(
+                    RuntimeOrigin::root(),
+                    ETH_USER,
+                    PassDeviceAttestation::Eth(pass_ethereum::EthRegistration {
+                        address,
+                        message,
+                        signature,
+                    })
+                ),
                 pallet_pass::Error::<Test>::DeviceAttestationInvalid,
             );
+        })
+    }
+}
+
+// ---------- Payload domain separation ----------
+
+mod domain_separation {
+    use super::*;
+
+    #[test]
+    fn different_authenticators_produce_different_payloads_for_same_inputs() {
+        new_test_ext().execute_with(|| {
+            let context: u64 = 1;
+            let challenge = [42u8; 32];
+            let authority = [1u8; 32];
+
+            let eth_msg = pass_ethereum::SignedMessage {
+                context,
+                challenge,
+                authority_id: authority,
+            };
+            let sol_msg = pass_solana::SignedMessage {
+                context,
+                challenge,
+                authority_id: authority,
+            };
+            let ssh_msg = pass_ssh::SignedMessage {
+                context,
+                challenge,
+                authority_id: authority,
+            };
+            let btc_msg = pass_bitcoin::SignedMessage {
+                context,
+                challenge,
+                authority_id: authority,
+            };
+            let nostr_msg = pass_nostr::SignedMessage {
+                context,
+                challenge,
+                authority_id: authority,
+            };
+
+            let eth_payload = eth_msg.payload();
+            let sol_payload = sol_msg.payload();
+            let ssh_payload = ssh_msg.payload();
+            let btc_payload = btc_msg.payload();
+            let nostr_payload = nostr_msg.payload();
+
+            // All payloads must be distinct due to domain separators
+            let payloads = [
+                &eth_payload,
+                &sol_payload,
+                &ssh_payload,
+                &btc_payload,
+                &nostr_payload,
+            ];
+            for i in 0..payloads.len() {
+                for j in (i + 1)..payloads.len() {
+                    assert_ne!(
+                        payloads[i], payloads[j],
+                        "Payload collision between authenticators {} and {}",
+                        i, j
+                    );
+                }
+            }
+        })
+    }
+
+    #[test]
+    fn domain_prefixes_are_correct() {
+        new_test_ext().execute_with(|| {
+            let msg = pass_ethereum::SignedMessage {
+                context: 1u64,
+                challenge: [0u8; 32],
+                authority_id: [0u8; 32],
+            };
+            assert!(msg.payload().starts_with(b"ETH"));
+
+            let msg = pass_bitcoin::SignedMessage {
+                context: 1u64,
+                challenge: [0u8; 32],
+                authority_id: [0u8; 32],
+            };
+            assert!(msg.payload().starts_with(b"BTC"));
+
+            let msg = pass_solana::SignedMessage {
+                context: 1u64,
+                challenge: [0u8; 32],
+                authority_id: [0u8; 32],
+            };
+            assert!(msg.payload().starts_with(b"SOL"));
+
+            let msg = pass_nostr::SignedMessage {
+                context: 1u64,
+                challenge: [0u8; 32],
+                authority_id: [0u8; 32],
+            };
+            assert!(msg.payload().starts_with(b"NOSTR"));
+
+            let msg = pass_ssh::SignedMessage {
+                context: 1u64,
+                challenge: [0u8; 32],
+                authority_id: [0u8; 32],
+            };
+            assert!(msg.payload().starts_with(b"SSH"));
+        })
+    }
+
+    #[test]
+    fn payload_is_unique_for_different_contexts() {
+        // Verify no SCALE length-extension ambiguity:
+        // different (context, challenge) pairs must produce different payloads.
+        new_test_ext().execute_with(|| {
+            let authority = [0u8; 32];
+
+            let msg1 = pass_ethereum::SignedMessage {
+                context: 256u64, // SCALE encodes as [0, 1, 0, 0, 0, 0, 0, 0]
+                challenge: [0u8; 32],
+                authority_id: authority,
+            };
+            let msg2 = pass_ethereum::SignedMessage {
+                context: 1u64, // SCALE encodes as [1, 0, 0, 0, 0, 0, 0, 0]
+                challenge: [0u8; 32],
+                authority_id: authority,
+            };
+
+            assert_ne!(msg1.payload(), msg2.payload());
+
+            // Also verify that context bytes don't bleed into challenge
+            let mut challenge_with_prefix = [0u8; 32];
+            challenge_with_prefix[0] = 1;
+            let msg3 = pass_ethereum::SignedMessage {
+                context: 0u64,
+                challenge: challenge_with_prefix,
+                authority_id: authority,
+            };
+            let msg4 = pass_ethereum::SignedMessage {
+                context: 0u64,
+                challenge: [0u8; 32],
+                authority_id: authority,
+            };
+            assert_ne!(msg3.payload(), msg4.payload());
         })
     }
 }
