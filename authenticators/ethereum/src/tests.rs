@@ -239,4 +239,41 @@ mod eth_address {
             assert!(recover_eth_address(&hash, &sig).is_none());
         })
     }
+
+    #[test]
+    fn recover_fails_with_zero_signature() {
+        new_test_ext().execute_with(|| {
+            let hash = crate::eth::personal_sign_hash(b"test");
+            let sig = [0u8; 65];
+            assert!(recover_eth_address(&hash, &sig).is_none());
+        })
+    }
+
+    #[test]
+    fn malformed_padding_rejects_registration() {
+        new_test_ext().execute_with(|| {
+            let (message, _address, signature) = make_signature(&UserAddress::get().encode());
+
+            // Construct an EthAddress with non-zero padding
+            let mut malformed = EthAddress::from_raw([0xAA; 20]);
+            // Directly set a padding byte to non-zero via encode/decode round-trip
+            let mut bytes = [0u8; 32];
+            bytes[0] = 0xFF; // non-zero in padding area
+            bytes[12..].copy_from_slice(&[0xAA; 20]);
+            let malformed = EthAddress::decode(&mut &bytes[..]).unwrap();
+
+            assert_noop!(
+                Pass::register(
+                    RuntimeOrigin::root(),
+                    USER,
+                    EthRegistration {
+                        address: malformed,
+                        message,
+                        signature,
+                    }
+                ),
+                pallet_pass::Error::<Test>::DeviceAttestationInvalid,
+            );
+        })
+    }
 }

@@ -202,3 +202,42 @@ mod sshsig_format {
         })
     }
 }
+
+mod edge_cases {
+    use super::*;
+
+    #[test]
+    fn verify_fails_with_zero_pubkey() {
+        new_test_ext().execute_with(|| {
+            let pair = SshKey::get();
+            let data = b"test";
+            let sig = pair.sign(data);
+
+            let zero_pubkey = SshPubkey([0u8; 32]);
+            assert!(!crate::ssh::verify_ssh_ed25519(&zero_pubkey, data, &sig.0));
+        })
+    }
+
+    #[test]
+    fn verify_fails_with_zero_signature() {
+        new_test_ext().execute_with(|| {
+            let pair = SshKey::get();
+            let pubkey = ssh_pubkey_of(&pair);
+            let sig = [0u8; 64];
+            assert!(!crate::ssh::verify_ssh_ed25519(&pubkey, b"test", &sig));
+        })
+    }
+
+    #[test]
+    fn verify_fails_with_tampered_signature() {
+        new_test_ext().execute_with(|| {
+            let pair = SshKey::get();
+            let pubkey = ssh_pubkey_of(&pair);
+            let data = b"tampered";
+            let mut sig = pair.sign(data.as_slice()).0;
+            sig[0] ^= 0x01;
+
+            assert!(!crate::ssh::verify_ssh_ed25519(&pubkey, data, &sig));
+        })
+    }
+}

@@ -227,4 +227,87 @@ mod btc_signing {
             assert!(recover_btc_pubkey_hash(&hash, &sig).is_none());
         })
     }
+
+    #[test]
+    fn recover_rejects_raw_recovery_id() {
+        new_test_ext().execute_with(|| {
+            let pair = BtcKey::get();
+            let hash = crate::btc::bitcoin_message_hash(b"test");
+            let raw = pair.sign_prehashed(&hash);
+            // Use raw recovery id (0) instead of BIP-137 flag — must be rejected
+            let mut sig = [0u8; 65];
+            sig[0] = 0;
+            sig[1..].copy_from_slice(&raw.0[..64]);
+
+            assert!(recover_btc_pubkey_hash(&hash, &sig).is_none());
+        })
+    }
+
+    #[test]
+    fn recover_works_with_uncompressed_flag() {
+        new_test_ext().execute_with(|| {
+            use ripemd::{Digest, Ripemd160};
+            let pair = BtcKey::get();
+            let hash = crate::btc::bitcoin_message_hash(b"hello uncompressed");
+            let raw = pair.sign_prehashed(&hash);
+
+            // BIP-137 uncompressed format: flag 27 + recovery_id
+            let mut sig = [0u8; 65];
+            sig[0] = 27 + raw.0[64];
+            sig[1..].copy_from_slice(&raw.0[..64]);
+
+            let recovered = recover_btc_pubkey_hash(&hash, &sig).expect("should recover");
+
+            // Derive expected hash from uncompressed pubkey
+            let pubkey_uncompressed = sp_io::crypto::secp256k1_ecdsa_recover(&raw.0, &hash)
+                .ok()
+                .unwrap();
+            let mut full = [0u8; 65];
+            full[0] = 0x04;
+            full[1..].copy_from_slice(&pubkey_uncompressed);
+            let sha = sha2_256(&full);
+            let mut hasher = Ripemd160::new();
+            hasher.update(sha);
+            let expected_h160: [u8; 20] = hasher.finalize().into();
+
+            assert_eq!(recovered, BtcPubkeyHash::from_hash160(expected_h160));
+        })
+    }
+
+    #[test]
+    fn recover_fails_with_zero_signature() {
+        new_test_ext().execute_with(|| {
+            let hash = crate::btc::bitcoin_message_hash(b"test");
+            let sig = [0u8; 65];
+            assert!(recover_btc_pubkey_hash(&hash, &sig).is_none());
+        })
+    }
+
+    #[test]
+    fn recover_accepts_boundary_flags() {
+        new_test_ext().execute_with(|| {
+            let pair = BtcKey::get();
+            let hash = crate::btc::bitcoin_message_hash(b"boundary");
+            let raw = pair.sign_prehashed(&hash);
+
+            // Flag 34 is the maximum valid compressed flag (31 + 3)
+            // Only test if recovery_id <= 3
+            if raw.0[64] <= 1 {
+                let mut sig = [0u8; 65];
+                sig[0] = 31 + raw.0[64]; // Valid compressed flag
+                sig[1..].copy_from_slice(&raw.0[..64]);
+                assert!(recover_btc_pubkey_hash(&hash, &sig).is_some());
+            }
+
+            // Flag 35 must always be rejected
+            let mut sig = [0u8; 65];
+            sig[0] = 35;
+            sig[1..].copy_from_slice(&raw.0[..64]);
+            assert!(recover_btc_pubkey_hash(&hash, &sig).is_none());
+
+            // Flag 26 must be rejected
+            sig[0] = 26;
+            assert!(recover_btc_pubkey_hash(&hash, &sig).is_none());
+        })
+    }
 }

@@ -216,4 +216,45 @@ mod schnorr_verification {
             ));
         })
     }
+
+    #[test]
+    fn verify_fails_with_invalid_pubkey_not_on_curve() {
+        new_test_ext().execute_with(|| {
+            // All-zeros is not a valid x-only point
+            let bad_pubkey = NostrPubkey([0u8; 32]);
+            let msg_hash = [0u8; 32];
+            let sig = [0u8; 64];
+            assert!(!crate::schnorr::verify_schnorr(
+                &bad_pubkey,
+                &msg_hash,
+                &sig
+            ));
+        })
+    }
+
+    #[test]
+    fn verify_fails_with_zero_signature() {
+        new_test_ext().execute_with(|| {
+            let (_sk, pubkey) = nostr_keypair();
+            let msg_hash = sp_io::hashing::sha2_256(b"test");
+            let sig = [0u8; 64];
+            assert!(!crate::schnorr::verify_schnorr(&pubkey, &msg_hash, &sig));
+        })
+    }
+
+    #[test]
+    fn verify_fails_with_bit_flipped_signature() {
+        new_test_ext().execute_with(|| {
+            let (sk, pubkey) = nostr_keypair();
+            let msg_hash = sp_io::hashing::sha2_256(b"tampered");
+            use k256::schnorr::signature::hazmat::PrehashSigner;
+            let sig: k256::schnorr::Signature = sk.sign_prehash(&msg_hash).expect("sign ok");
+            let mut sig_bytes: [u8; 64] = sig.to_bytes().into();
+            sig_bytes[0] ^= 0x01; // Flip one bit
+
+            assert!(!crate::schnorr::verify_schnorr(
+                &pubkey, &msg_hash, &sig_bytes
+            ));
+        })
+    }
 }

@@ -178,3 +178,42 @@ mod authentication {
         })
     }
 }
+
+mod edge_cases {
+    use super::*;
+
+    #[test]
+    fn verify_fails_with_zero_pubkey() {
+        new_test_ext().execute_with(|| {
+            let pair = SolKey::get();
+            let payload = b"test message";
+            let sig = pair.sign(payload);
+
+            let zero_pubkey = SolPubkey([0u8; 32]);
+            assert!(!crate::sol::verify_ed25519(&zero_pubkey, payload, &sig.0));
+        })
+    }
+
+    #[test]
+    fn verify_fails_with_zero_signature() {
+        new_test_ext().execute_with(|| {
+            let pair = SolKey::get();
+            let pubkey = sol_pubkey_of(&pair);
+            let sig = [0u8; 64];
+            assert!(!crate::sol::verify_ed25519(&pubkey, b"test", &sig));
+        })
+    }
+
+    #[test]
+    fn verify_fails_with_tampered_signature() {
+        new_test_ext().execute_with(|| {
+            let pair = SolKey::get();
+            let pubkey = sol_pubkey_of(&pair);
+            let payload = b"tampered test";
+            let mut sig = pair.sign(payload).0;
+            sig[0] ^= 0x01;
+
+            assert!(!crate::sol::verify_ed25519(&pubkey, payload, &sig));
+        })
+    }
+}
