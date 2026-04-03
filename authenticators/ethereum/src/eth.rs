@@ -4,9 +4,11 @@ use sp_io::hashing::keccak_256;
 extern crate alloc;
 
 impl<Cx: Encode> SignedMessage<Cx> {
-    /// The raw payload bytes (SCALE-encoded context || challenge || authority_id).
+    /// The domain-separated payload bytes.
+    /// Prefixed with `b"ETH"` to prevent cross-authenticator signature replay.
     pub fn payload(&self) -> alloc::vec::Vec<u8> {
         [
+            b"ETH".as_slice(),
             self.context.encode().as_ref(),
             &self.challenge[..],
             &self.authority_id[..],

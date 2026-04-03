@@ -16,17 +16,18 @@ parameter_types! {
     pub UserAddress: AccountId = Pass::address_for(USER);
 }
 
-/// Derive BtcPubkeyHash from a key pair (matching our hash160 implementation).
+/// Derive BtcPubkeyHash from a key pair using real HASH160.
 fn btc_pubkey_hash_of(pair: &ecdsa::Pair) -> BtcPubkeyHash {
+    use ripemd::{Digest, Ripemd160};
     let dummy_msg = [0u8; 32];
     let sig = pair.sign_prehashed(&dummy_msg);
     let pubkey = sp_io::crypto::secp256k1_ecdsa_recover_compressed(&sig.0, &dummy_msg)
         .ok()
         .expect("recovery works");
-    // Our hash160 implementation: first 20 bytes of SHA256(SHA256(data))
-    let hash = sha2_256(&sha2_256(&pubkey));
-    let mut h160 = [0u8; 20];
-    h160.copy_from_slice(&hash[..20]);
+    let sha = sha2_256(&pubkey);
+    let mut hasher = Ripemd160::new();
+    hasher.update(sha);
+    let h160: [u8; 20] = hasher.finalize().into();
     BtcPubkeyHash::from_hash160(h160)
 }
 

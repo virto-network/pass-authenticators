@@ -4,10 +4,11 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 impl<Cx: Encode> SignedMessage<Cx> {
-    /// The raw payload bytes (SCALE-encoded context || challenge || authority_id).
-    /// Solana wallets sign raw bytes directly, no special prefix.
+    /// The domain-separated payload bytes.
+    /// Prefixed with `b"SOL"` to prevent cross-authenticator signature replay.
     pub fn payload(&self) -> Vec<u8> {
         [
+            b"SOL".as_slice(),
             self.context.encode().as_ref(),
             &self.challenge[..],
             &self.authority_id[..],

@@ -23,6 +23,7 @@ impl<Cx: Parameter + Encode + 'static> UserChallengeResponse<Cx> for EthSignatur
 
 impl<Cx: Encode> VerifyCredential<EthSignature<Cx>> for EthAddress {
     fn verify(&mut self, credential: &EthSignature<Cx>) -> Option<()> {
+        self.is_well_formed().then_some(())?;
         log::debug!(
             target: LOG_TARGET,
             "Verifying Ethereum signature for {:?}",

@@ -61,6 +61,11 @@ impl EthAddress {
     pub fn as_eth_bytes(&self) -> &[u8; 20] {
         self.0[12..].try_into().expect("slice is exactly 20 bytes")
     }
+
+    /// Check that the upper 12 padding bytes are zero.
+    pub fn is_well_formed(&self) -> bool {
+        self.0[..12] == [0u8; 12]
+    }
 }
 
 impl AsRef<DeviceId> for EthAddress {

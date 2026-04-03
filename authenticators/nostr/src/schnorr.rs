@@ -4,10 +4,15 @@ use k256::schnorr::signature::hazmat::PrehashVerifier;
 extern crate alloc;
 use alloc::vec::Vec;
 
+/// BIP-340 tag for our Nostr authenticator's tagged hash.
+const BIP340_TAG: &[u8] = b"pallet-pass/nostr";
+
 impl<Cx: Encode> SignedMessage<Cx> {
-    /// The raw payload bytes (SCALE-encoded context || challenge || authority_id).
+    /// The domain-separated payload bytes.
+    /// Prefixed with `b"NOSTR"` to prevent cross-authenticator signature replay.
     pub fn payload(&self) -> Vec<u8> {
         [
+            b"NOSTR".as_slice(),
             self.context.encode().as_ref(),
             &self.challenge[..],
             &self.authority_id[..],
@@ -15,12 +20,23 @@ impl<Cx: Encode> SignedMessage<Cx> {
         .concat()
     }
 
-    /// Compute the BIP-340 tagged hash for signing.
-    /// Uses SHA256 of the raw payload (Nostr signs message hashes).
+    /// Compute a BIP-340 tagged hash of the payload.
+    /// Format: `SHA256(SHA256(tag) || SHA256(tag) || msg)`
+    /// where tag = `b"pallet-pass/nostr"` and msg = payload bytes.
     pub fn message_hash(&self) -> [u8; 32] {
         let payload = self.payload();
-        sp_io::hashing::sha2_256(&payload)
+        bip340_tagged_hash(BIP340_TAG, &payload)
     }
+}
+
+/// Compute a BIP-340 tagged hash: `SHA256(SHA256(tag) || SHA256(tag) || msg)`.
+fn bip340_tagged_hash(tag: &[u8], msg: &[u8]) -> [u8; 32] {
+    let tag_hash = sp_io::hashing::sha2_256(tag);
+    let mut data = Vec::with_capacity(64 + msg.len());
+    data.extend_from_slice(&tag_hash);
+    data.extend_from_slice(&tag_hash);
+    data.extend_from_slice(msg);
+    sp_io::hashing::sha2_256(&data)
 }
 
 /// Verify a BIP-340 Schnorr signature against a Nostr x-only public key.
@@ -36,7 +52,7 @@ pub fn verify_schnorr(pubkey: &NostrPubkey, message_hash: &[u8; 32], signature: 
 
 #[cfg(feature = "full-crypto")]
 pub trait Sign<Cx> {
-    /// Sign the message hash with a BIP-340 Schnorr signing key.
+    /// Sign the BIP-340 tagged message hash with a Schnorr signing key.
     fn sign(&self, signing_key: &k256::schnorr::SigningKey) -> [u8; 64];
 }
 

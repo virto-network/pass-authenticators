@@ -9,6 +9,10 @@ impl<Ch: Challenger, AuthId> From<EthRegistration<CxOf<Ch>>> for Device<Ch, Auth
 
 impl<Cx: Parameter + Encode + 'static> DeviceChallengeResponse<Cx> for EthRegistration<Cx> {
     fn is_valid(&self) -> bool {
+        if !self.address.is_well_formed() {
+            log::debug!(target: LOG_TARGET, "Malformed EthAddress: non-zero padding bytes");
+            return false;
+        }
         log::debug!(
             target: LOG_TARGET,
             "Verifying Ethereum registration of {:?} with signature",

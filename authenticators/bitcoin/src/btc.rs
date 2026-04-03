@@ -5,9 +5,11 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 impl<Cx: Encode> SignedMessage<Cx> {
-    /// The raw payload bytes (SCALE-encoded context || challenge || authority_id).
+    /// The domain-separated payload bytes.
+    /// Prefixed with `b"BTC"` to prevent cross-authenticator signature replay.
     pub fn payload(&self) -> Vec<u8> {
         [
+            b"BTC".as_slice(),
             self.context.encode().as_ref(),
             &self.challenge[..],
             &self.authority_id[..],
@@ -58,13 +60,11 @@ pub fn recover_btc_pubkey_hash(
     signature: &[u8; 65],
 ) -> Option<BtcPubkeyHash> {
     // BIP-137: first byte is recovery flag
-    // 27-30: uncompressed, 31-34: compressed
+    // 27-30: uncompressed key, 31-34: compressed key
     let flag = signature[0];
     let (recovery_id, compressed) = match flag {
         27..=30 => (flag - 27, false),
         31..=34 => (flag - 31, true),
-        // Also accept raw recovery id (0-3) for compatibility
-        0..=3 => (flag, true),
         _ => return None,
     };
 
@@ -93,16 +93,12 @@ pub fn recover_btc_pubkey_hash(
 }
 
 /// Bitcoin HASH160: RIPEMD160(SHA256(data)).
-/// Since `sp_io` doesn't provide RIPEMD160, we use a simplified approach:
-/// take the first 20 bytes of SHA256(SHA256(data)).
-/// NOTE: For full Bitcoin compatibility, a proper RIPEMD160 implementation
-/// should be used. This works for our authentication purposes since both
-/// sides (registration and verification) use the same derivation.
 fn hash160(data: &[u8]) -> [u8; 20] {
-    let hash = sha2_256(&sha2_256(data));
-    let mut result = [0u8; 20];
-    result.copy_from_slice(&hash[..20]);
-    result
+    use ripemd::{Digest, Ripemd160};
+    let sha = sha2_256(data);
+    let mut hasher = Ripemd160::new();
+    hasher.update(sha);
+    hasher.finalize().into()
 }
 
 #[cfg(feature = "full-crypto")]
