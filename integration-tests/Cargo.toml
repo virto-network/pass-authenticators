@@ -1,0 +1,47 @@
+[package]
+name = "pass-authenticators-integration-tests"
+edition.workspace = true
+version = "0.1.0"
+publish = false
+
+[dependencies]
+codec.workspace = true
+ripemd.workspace = true
+frame.workspace = true
+k256.workspace = true
+log.workspace = true
+pallet-balances.workspace = true
+pallet-pass.workspace = true
+pallet-scheduler.workspace = true
+pass-ethereum = { path = "../authenticators/ethereum", package = "pass-authenticators-ethereum" }
+pass-bitcoin = { path = "../authenticators/bitcoin", package = "pass-authenticators-bitcoin" }
+pass-solana = { path = "../authenticators/solana", package = "pass-authenticators-solana" }
+pass-nostr = { path = "../authenticators/nostr", package = "pass-authenticators-nostr" }
+pass-ssh = { path = "../authenticators/ssh", package = "pass-authenticators-ssh" }
+scale-info.workspace = true
+sp-core.workspace = true
+sp-io.workspace = true
+sp-runtime.workspace = true
+traits-authn.workspace = true
+
+[features]
+default = ["std"]
+std = [
+  "codec/std",
+  "frame/std",
+  "k256/std",
+  "log/std",
+  "pallet-balances/std",
+  "pallet-pass/std",
+  "pallet-scheduler/std",
+  "pass-ethereum/std",
+  "pass-bitcoin/std",
+  "pass-solana/std",
+  "pass-nostr/std",
+  "pass-ssh/std",
+  "scale-info/std",
+  "sp-core/std",
+  "sp-io/std",
+  "sp-runtime/std",
+  "traits-authn/std",
+]

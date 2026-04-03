@@ -61,5 +61,5 @@ traits-authn = { git = "https://github.com/virto-network/frame-contrib", package
 pallet-pass = { git = "https://github.com/virto-network/frame-contrib", package = "fc-pallet-pass", default-features = false }
 
 [workspace]
-members = ["authenticators/*"]
+members = ["authenticators/*", "integration-tests"]
 resolver = "2"

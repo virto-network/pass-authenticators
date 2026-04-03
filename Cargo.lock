@@ -2755,6 +2755,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "pass-authenticators-integration-tests"
+version = "0.1.0"
+dependencies = [
+ "fc-pallet-pass",
+ "fc-traits-authn",
+ "k256",
+ "log",
+ "pallet-balances",
+ "pallet-scheduler",
+ "parity-scale-codec",
+ "pass-authenticators-bitcoin",
+ "pass-authenticators-ethereum",
+ "pass-authenticators-nostr",
+ "pass-authenticators-solana",
+ "pass-authenticators-ssh",
+ "polkadot-sdk-frame",
+ "ripemd",
+ "scale-info",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+]
+
+[[package]]
 name = "pass-authenticators-nostr"
 version = "0.1.0"
 dependencies = [
