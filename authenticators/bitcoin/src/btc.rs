@@ -75,20 +75,13 @@ pub fn recover_btc_pubkey_hash(
 
     if compressed {
         let pubkey = sp_io::crypto::secp256k1_ecdsa_recover_compressed(&sig, message_hash).ok()?;
-        // HASH160 = RIPEMD160(SHA256(compressed_pubkey))
-        // Since we don't have RIPEMD160 in sp_io, we approximate with
-        // SHA256 and take 20 bytes. For production, add a RIPEMD160 crate.
-        // Actually, let's use the full 33-byte compressed pubkey hash.
-        let hash = hash160(&pubkey);
-        Some(BtcPubkeyHash::from_hash160(hash))
+        Some(BtcPubkeyHash::from_hash160(hash160(&pubkey)))
     } else {
         let pubkey = sp_io::crypto::secp256k1_ecdsa_recover(&sig, message_hash).ok()?;
-        // Uncompressed: 0x04 || x[32] || y[32]
         let mut uncompressed = [0u8; 65];
         uncompressed[0] = 0x04;
         uncompressed[1..].copy_from_slice(&pubkey);
-        let hash = hash160(&uncompressed);
-        Some(BtcPubkeyHash::from_hash160(hash))
+        Some(BtcPubkeyHash::from_hash160(hash160(&uncompressed)))
     }
 }
 
