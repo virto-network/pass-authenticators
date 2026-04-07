@@ -3,33 +3,30 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use codec::{Decode, DecodeWithMemTracking, Encode};
-use frame::prelude::BoundedVec;
-use frame::traits::ConstU32;
-use traits_authn::{
-    util::{Auth, Dev},
-    AuthorityId, Challenger, DeviceId, HashedUserId,
+use codec::{Decode, Encode};
+use traits_authn::{AuthorityId, DeviceId, HashedUserId};
+#[cfg(feature = "runtime")]
+use {
+    codec::{DecodeWithMemTracking, MaxEncodedLen},
+    frame::prelude::BoundedVec,
+    frame::traits::ConstU32,
+    scale_info::TypeInfo,
 };
-#[cfg(any(feature = "runtime", test))]
-use {codec::MaxEncodedLen, scale_info::TypeInfo};
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
 
-#[cfg(any(feature = "runtime", test))]
+#[cfg(feature = "runtime")]
 pub use runtime::{Authenticator, Device};
-#[cfg(any(feature = "runtime", test))]
+#[cfg(feature = "runtime")]
 mod runtime;
 
 pub type DEREncodedPublicKey = [u8; 91];
 
 #[derive(Clone, Encode, Decode, Debug, PartialEq, Eq, Copy)]
-#[cfg_attr(
-    any(feature = "runtime", test),
-    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
-)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
 pub struct CredentialRecord {
     device_id: DeviceId,
     //. A DER-encoded public key
@@ -40,10 +37,7 @@ pub struct CredentialRecord {
 }
 
 #[derive(Clone, Encode, Decode, Debug, PartialEq, Eq, Copy)]
-#[cfg_attr(
-    any(feature = "runtime", test),
-    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
-)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
 pub struct AttestationMeta<Cx> {
     pub(crate) authority_id: AuthorityId,
     pub(crate) device_id: DeviceId,
@@ -51,25 +45,19 @@ pub struct AttestationMeta<Cx> {
 }
 
 #[derive(Clone, Encode, Decode, Debug, PartialEq, Eq)]
-#[cfg_attr(
-    any(feature = "runtime", test),
-    derive(DecodeWithMemTracking, TypeInfo)
-)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo))]
 pub struct Attestation<Cx> {
     pub(crate) meta: AttestationMeta<Cx>,
     pub(crate) authenticator_data: Vec<u8>,
-    #[cfg(not(any(feature = "runtime", test)))]
+    #[cfg(not(feature = "runtime"))]
     pub(crate) client_data: Vec<u8>,
-    #[cfg(any(feature = "runtime", test))]
+    #[cfg(feature = "runtime")]
     pub(crate) client_data: BoundedVec<u8, ConstU32<1024>>,
     pub(crate) public_key: DEREncodedPublicKey,
 }
 
 #[derive(Clone, Encode, Decode, Debug, PartialEq, Eq, Copy)]
-#[cfg_attr(
-    any(feature = "runtime", test),
-    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
-)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
 pub struct AssertionMeta<Cx> {
     pub(crate) authority_id: AuthorityId,
     pub(crate) user_id: HashedUserId,
@@ -77,16 +65,13 @@ pub struct AssertionMeta<Cx> {
 }
 
 #[derive(Clone, Encode, Decode, Debug, PartialEq, Eq)]
-#[cfg_attr(
-    any(feature = "runtime", test),
-    derive(DecodeWithMemTracking, TypeInfo)
-)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo))]
 pub struct Assertion<Cx> {
     pub(crate) meta: AssertionMeta<Cx>,
     pub(crate) authenticator_data: Vec<u8>,
-    #[cfg(not(any(feature = "runtime", test)))]
+    #[cfg(not(feature = "runtime"))]
     pub(crate) client_data: Vec<u8>,
-    #[cfg(any(feature = "runtime", test))]
+    #[cfg(feature = "runtime")]
     pub(crate) client_data: BoundedVec<u8, ConstU32<1024>>,
     pub(crate) signature: Vec<u8>,
 }

@@ -5,16 +5,21 @@
 //! Verifies Ethereum `personal_sign` signatures, enabling MetaMask,
 //! WalletConnect and other EVM wallets to authenticate with pallet-pass.
 
-use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
-use scale_info::TypeInfo;
+use codec::{Decode, Encode};
 use traits_authn::{AuthorityId, Challenge, DeviceId, HashedUserId};
+
+#[cfg(feature = "runtime")]
+use {
+    codec::{DecodeWithMemTracking, MaxEncodedLen},
+    scale_info::TypeInfo,
+};
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
 
-#[cfg(any(test, feature = "runtime"))]
+#[cfg(feature = "runtime")]
 mod runtime {
     use super::*;
     use traits_authn::{prelude::*, util::*};
@@ -28,25 +33,16 @@ mod runtime {
     pub type Device<Ch, A> = Dev<EthAddress, A, Ch, EthSignature<CxOf<Ch>>>;
 }
 
-#[cfg(any(feature = "runtime", test))]
+#[cfg(feature = "runtime")]
 pub use runtime::{Authenticator, Device};
 
+#[cfg(feature = "runtime")]
 mod eth;
 
 /// A 20-byte Ethereum address stored in a 32-byte DeviceId-compatible container
 /// (left-padded with 12 zero bytes).
-#[derive(
-    Clone,
-    Copy,
-    Encode,
-    Decode,
-    DecodeWithMemTracking,
-    TypeInfo,
-    MaxEncodedLen,
-    PartialEq,
-    Eq,
-    Debug,
-)]
+#[derive(Clone, Copy, Encode, Decode, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
 pub struct EthAddress([u8; 32]);
 
 impl EthAddress {
@@ -75,9 +71,8 @@ impl AsRef<DeviceId> for EthAddress {
 }
 
 /// A signed message containing the challenge context and authority.
-#[derive(
-    Clone, Encode, Decode, DecodeWithMemTracking, TypeInfo, MaxEncodedLen, PartialEq, Eq, Debug,
-)]
+#[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
 pub struct SignedMessage<Cx> {
     pub context: Cx,
     pub challenge: Challenge,
@@ -85,9 +80,8 @@ pub struct SignedMessage<Cx> {
 }
 
 /// Registration of an Ethereum address as a device.
-#[derive(
-    Clone, Encode, Decode, DecodeWithMemTracking, TypeInfo, MaxEncodedLen, PartialEq, Eq, Debug,
-)]
+#[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
 pub struct EthRegistration<Cx> {
     pub address: EthAddress,
     pub message: SignedMessage<Cx>,
@@ -96,9 +90,8 @@ pub struct EthRegistration<Cx> {
 }
 
 /// A credential proving the user controls an Ethereum address.
-#[derive(
-    Clone, Encode, Decode, DecodeWithMemTracking, TypeInfo, MaxEncodedLen, PartialEq, Eq, Debug,
-)]
+#[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
 pub struct EthSignature<Cx> {
     pub user_id: HashedUserId,
     pub message: SignedMessage<Cx>,

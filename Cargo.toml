@@ -57,8 +57,8 @@ pallet-balances = { version = "46.0.0", default-features = false }
 pallet-scheduler = { version = "46.0.0", default-features = false }
 
 # FRAME Contrib
-traits-authn = { git = "https://github.com/virto-network/frame-contrib", package = "fc-traits-authn", default-features = false }
-pallet-pass = { git = "https://github.com/virto-network/frame-contrib", package = "fc-pallet-pass", default-features = false }
+traits-authn = { path = "../frame-contrib/traits/authn", package = "fc-traits-authn", default-features = false }
+pallet-pass = { path = "../frame-contrib/pallets/pass", package = "fc-pallet-pass", default-features = false }
 
 [workspace]
 members = ["authenticators/*", "integration-tests"]

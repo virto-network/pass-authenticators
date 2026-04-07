@@ -8,12 +8,12 @@ version = "0.1.0"
 
 [dependencies]
 codec.workspace = true
-k256.workspace = true
+k256 = { workspace = true, optional = true }
 log.workspace = true
-scale-info.workspace = true
-sp-core.workspace = true
-sp-io.workspace = true
-sp-runtime.workspace = true
+scale-info = { workspace = true, optional = true }
+sp-core = { workspace = true, optional = true }
+sp-io = { workspace = true, optional = true }
+sp-runtime = { workspace = true, optional = true }
 traits-authn.workspace = true
 
 [dev-dependencies]
@@ -24,20 +24,27 @@ pallet-scheduler.workspace = true
 
 [features]
 default = ["std", "runtime", "full-crypto"]
-runtime = []
-full-crypto = ["sp-core/full_crypto", "k256/arithmetic"]
+runtime = [
+  "dep:k256",
+  "dep:scale-info",
+  "dep:sp-core",
+  "dep:sp-io",
+  "dep:sp-runtime",
+  "traits-authn/runtime",
+]
+full-crypto = ["runtime", "sp-core/full_crypto", "k256/arithmetic"]
 std = [
   "codec/std",
   "frame/std",
-  "k256/std",
+  "k256?/std",
   "log/std",
   "pallet-balances/std",
   "pallet-pass/std",
   "pallet-scheduler/std",
-  "scale-info/std",
-  "sp-core/std",
-  "sp-io/std",
-  "sp-runtime/std",
+  "scale-info?/std",
+  "sp-core?/std",
+  "sp-io?/std",
+  "sp-runtime?/std",
   "traits-authn/std",
 ]
 try-runtime = [

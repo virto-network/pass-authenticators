@@ -37,7 +37,9 @@ url-evil.workspace = true
 [features]
 default = ["std", "runtime"]
 runtime = [
+  "dep:frame",
   "frame/runtime",
+  "traits-authn/runtime",
   "bitflags",
   "byteorder",
   "coset",

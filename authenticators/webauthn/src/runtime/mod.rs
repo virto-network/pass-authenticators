@@ -2,7 +2,10 @@ use super::*;
 
 use alloc::string::String;
 use frame::prelude::Parameter;
-use traits_authn::{AuthorityId, Challenge, DeviceChallengeResponse, DeviceId};
+use traits_authn::{
+    util::{Auth, Dev},
+    AuthorityId, Challenge, Challenger, DeviceChallengeResponse, DeviceId,
+};
 
 type CxOf<Ch> = <Ch as Challenger>::Context;
 

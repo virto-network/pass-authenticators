@@ -8,16 +8,21 @@
 //! Uses the standard Bitcoin Signed Message format:
 //! `SHA256d("\x18Bitcoin Signed Message:\n" || varint(len) || message)`
 
-use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
-use scale_info::TypeInfo;
+use codec::{Decode, Encode};
 use traits_authn::{AuthorityId, Challenge, DeviceId, HashedUserId};
+
+#[cfg(feature = "runtime")]
+use {
+    codec::{DecodeWithMemTracking, MaxEncodedLen},
+    scale_info::TypeInfo,
+};
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
 
-#[cfg(any(test, feature = "runtime"))]
+#[cfg(feature = "runtime")]
 mod runtime {
     use super::*;
     use traits_authn::{prelude::*, util::*};
@@ -31,25 +36,16 @@ mod runtime {
     pub type Device<Ch, A> = Dev<BtcPubkeyHash, A, Ch, BtcSignature<CxOf<Ch>>>;
 }
 
-#[cfg(any(feature = "runtime", test))]
+#[cfg(feature = "runtime")]
 pub use runtime::{Authenticator, Device};
 
+#[cfg(feature = "runtime")]
 mod btc;
 
 /// A Bitcoin public key hash (HASH160 = RIPEMD160(SHA256(pubkey))), stored
 /// in a 32-byte DeviceId-compatible container (left-padded with zeros).
-#[derive(
-    Clone,
-    Copy,
-    Encode,
-    Decode,
-    DecodeWithMemTracking,
-    TypeInfo,
-    MaxEncodedLen,
-    PartialEq,
-    Eq,
-    Debug,
-)]
+#[derive(Clone, Copy, Encode, Decode, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
 pub struct BtcPubkeyHash([u8; 32]);
 
 impl BtcPubkeyHash {
@@ -73,9 +69,8 @@ impl AsRef<DeviceId> for BtcPubkeyHash {
 }
 
 /// A signed message containing the challenge context and authority.
-#[derive(
-    Clone, Encode, Decode, DecodeWithMemTracking, TypeInfo, MaxEncodedLen, PartialEq, Eq, Debug,
-)]
+#[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
 pub struct SignedMessage<Cx> {
     pub context: Cx,
     pub challenge: Challenge,
@@ -83,9 +78,8 @@ pub struct SignedMessage<Cx> {
 }
 
 /// Registration of a Bitcoin public key as a device.
-#[derive(
-    Clone, Encode, Decode, DecodeWithMemTracking, TypeInfo, MaxEncodedLen, PartialEq, Eq, Debug,
-)]
+#[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
 pub struct BtcRegistration<Cx> {
     pub pubkey_hash: BtcPubkeyHash,
     pub message: SignedMessage<Cx>,
@@ -94,9 +88,8 @@ pub struct BtcRegistration<Cx> {
 }
 
 /// A credential proving the user controls a Bitcoin key.
-#[derive(
-    Clone, Encode, Decode, DecodeWithMemTracking, TypeInfo, MaxEncodedLen, PartialEq, Eq, Debug,
-)]
+#[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
 pub struct BtcSignature<Cx> {
     pub user_id: HashedUserId,
     pub message: SignedMessage<Cx>,
