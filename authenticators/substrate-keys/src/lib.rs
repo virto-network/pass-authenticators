@@ -1,6 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use codec::{Encode, Decode};
+use codec::{Decode, Encode};
 use traits_authn::{AuthorityId, Challenge, HashedUserId};
 
 #[cfg(feature = "runtime")]
@@ -49,7 +49,10 @@ mod signed_message;
 
 /// A message to be signed.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct SignedMessage<Cx> {
     pub context: Cx,
     pub challenge: Challenge,
@@ -58,7 +61,10 @@ pub struct SignedMessage<Cx> {
 
 /// A structure which represents the registration of a key into the authenticator.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct KeyRegistration<Cx> {
     pub public: AccountId32,
     pub message: SignedMessage<Cx>,
@@ -67,7 +73,10 @@ pub struct KeyRegistration<Cx> {
 
 /// A structure which represents the signature of a message with a given key.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct KeySignature<Cx> {
     pub user_id: HashedUserId,
     pub message: SignedMessage<Cx>,

@@ -45,7 +45,10 @@ mod btc;
 /// A Bitcoin public key hash (HASH160 = RIPEMD160(SHA256(pubkey))), stored
 /// in a 32-byte DeviceId-compatible container (left-padded with zeros).
 #[derive(Clone, Copy, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct BtcPubkeyHash([u8; 32]);
 
 impl BtcPubkeyHash {
@@ -70,7 +73,10 @@ impl AsRef<DeviceId> for BtcPubkeyHash {
 
 /// A signed message containing the challenge context and authority.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct SignedMessage<Cx> {
     pub context: Cx,
     pub challenge: Challenge,
@@ -79,7 +85,10 @@ pub struct SignedMessage<Cx> {
 
 /// Registration of a Bitcoin public key as a device.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct BtcRegistration<Cx> {
     pub pubkey_hash: BtcPubkeyHash,
     pub message: SignedMessage<Cx>,
@@ -89,7 +98,10 @@ pub struct BtcRegistration<Cx> {
 
 /// A credential proving the user controls a Bitcoin key.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct BtcSignature<Cx> {
     pub user_id: HashedUserId,
     pub message: SignedMessage<Cx>,

@@ -41,7 +41,10 @@ mod schnorr;
 
 /// A 32-byte x-only secp256k1 public key (Nostr npub).
 #[derive(Clone, Copy, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct NostrPubkey(pub [u8; 32]);
 
 impl AsRef<DeviceId> for NostrPubkey {
@@ -52,7 +55,10 @@ impl AsRef<DeviceId> for NostrPubkey {
 
 /// A signed message containing the challenge context and authority.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct SignedMessage<Cx> {
     pub context: Cx,
     pub challenge: Challenge,
@@ -61,7 +67,10 @@ pub struct SignedMessage<Cx> {
 
 /// Registration of a Nostr public key as a device.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct NostrRegistration<Cx> {
     pub pubkey: NostrPubkey,
     pub message: SignedMessage<Cx>,
@@ -71,7 +80,10 @@ pub struct NostrRegistration<Cx> {
 
 /// A credential proving the user controls a Nostr key.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct NostrSignature<Cx> {
     pub user_id: HashedUserId,
     pub message: SignedMessage<Cx>,

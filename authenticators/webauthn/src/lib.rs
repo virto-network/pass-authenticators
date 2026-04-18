@@ -26,7 +26,10 @@ mod runtime;
 pub type DEREncodedPublicKey = [u8; 91];
 
 #[derive(Clone, Encode, Decode, Debug, PartialEq, Eq, Copy)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct CredentialRecord {
     device_id: DeviceId,
     //. A DER-encoded public key
@@ -37,7 +40,10 @@ pub struct CredentialRecord {
 }
 
 #[derive(Clone, Encode, Decode, Debug, PartialEq, Eq, Copy)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct AttestationMeta<Cx> {
     pub(crate) authority_id: AuthorityId,
     pub(crate) device_id: DeviceId,
@@ -57,7 +63,10 @@ pub struct Attestation<Cx> {
 }
 
 #[derive(Clone, Encode, Decode, Debug, PartialEq, Eq, Copy)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct AssertionMeta<Cx> {
     pub(crate) authority_id: AuthorityId,
     pub(crate) user_id: HashedUserId,

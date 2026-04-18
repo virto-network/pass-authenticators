@@ -41,7 +41,10 @@ mod sol;
 
 /// A 32-byte Ed25519 public key (Solana address).
 #[derive(Clone, Copy, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct SolPubkey(pub [u8; 32]);
 
 impl AsRef<DeviceId> for SolPubkey {
@@ -52,7 +55,10 @@ impl AsRef<DeviceId> for SolPubkey {
 
 /// A signed message containing the challenge context and authority.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct SignedMessage<Cx> {
     pub context: Cx,
     pub challenge: Challenge,
@@ -61,7 +67,10 @@ pub struct SignedMessage<Cx> {
 
 /// Registration of a Solana public key as a device.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct SolRegistration<Cx> {
     pub pubkey: SolPubkey,
     pub message: SignedMessage<Cx>,
@@ -71,7 +80,10 @@ pub struct SolRegistration<Cx> {
 
 /// A credential proving the user controls a Solana key.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct SolSignature<Cx> {
     pub user_id: HashedUserId,
     pub message: SignedMessage<Cx>,

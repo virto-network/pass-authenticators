@@ -42,7 +42,10 @@ mod eth;
 /// A 20-byte Ethereum address stored in a 32-byte DeviceId-compatible container
 /// (left-padded with 12 zero bytes).
 #[derive(Clone, Copy, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct EthAddress([u8; 32]);
 
 impl EthAddress {
@@ -72,7 +75,10 @@ impl AsRef<DeviceId> for EthAddress {
 
 /// A signed message containing the challenge context and authority.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct SignedMessage<Cx> {
     pub context: Cx,
     pub challenge: Challenge,
@@ -81,7 +87,10 @@ pub struct SignedMessage<Cx> {
 
 /// Registration of an Ethereum address as a device.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct EthRegistration<Cx> {
     pub address: EthAddress,
     pub message: SignedMessage<Cx>,
@@ -91,7 +100,10 @@ pub struct EthRegistration<Cx> {
 
 /// A credential proving the user controls an Ethereum address.
 #[derive(Clone, Encode, Decode, PartialEq, Eq, Debug)]
-#[cfg_attr(feature = "runtime", derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen))]
+#[cfg_attr(
+    feature = "runtime",
+    derive(DecodeWithMemTracking, TypeInfo, MaxEncodedLen)
+)]
 pub struct EthSignature<Cx> {
     pub user_id: HashedUserId,
     pub message: SignedMessage<Cx>,
