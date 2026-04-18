@@ -125,6 +125,10 @@ impl pallet_pass::Config for Test {
     type MaxDevicesPerAccount = ConstU32<5>;
     type MaxSessionsPerAccount = ConstU32<3>;
     type MaxSessionDuration = ConstU64<10>;
+    type SpendMatcher = ();
+    type CallMatcher = pallet_pass::ScaleCallMatcher;
+    type MaxFilteredCalls = ConstU32<10>;
+    type MaxFilteredAssets = ConstU32<5>;
 }
 
 pub fn new_test_ext() -> TestExternalities {
