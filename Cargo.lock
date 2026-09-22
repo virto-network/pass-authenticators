@@ -1207,8 +1207,7 @@ dependencies = [
 [[package]]
 name = "fc-pallet-pass"
 version = "3.0.0-pre.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8e34a520977eac87b6611ad44203852502bda0069058cd7718d56c199af255e"
+source = "git+https://github.com/virto-network/frame-contrib?rev=645861905c2a2691b1f0fdbfcd2a6c8a4ff53f03#645861905c2a2691b1f0fdbfcd2a6c8a4ff53f03"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -1225,8 +1224,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn"
 version = "3.0.0-pre.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a176b2e61cad5e4b6bb315a9795a1a078620b0391b366787f532dded1fda109"
+source = "git+https://github.com/virto-network/frame-contrib?rev=645861905c2a2691b1f0fdbfcd2a6c8a4ff53f03#645861905c2a2691b1f0fdbfcd2a6c8a4ff53f03"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -1238,8 +1236,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn-proc"
 version = "3.0.0-pre.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d28847c07bced94356605bd1e6c1f810a0766a5f1422169c9824b7283ac2f5fe"
+source = "git+https://github.com/virto-network/frame-contrib?rev=645861905c2a2691b1f0fdbfcd2a6c8a4ff53f03#645861905c2a2691b1f0fdbfcd2a6c8a4ff53f03"
 dependencies = [
  "proc-macro-crate",
  "quote",
@@ -2777,6 +2774,8 @@ version = "2.0.0-pre.1"
 dependencies = [
  "fc-pallet-pass",
  "fc-traits-authn",
+ "frame-support",
+ "k256",
  "log",
  "pallet-balances",
  "pallet-scheduler",
@@ -2795,6 +2794,8 @@ version = "2.0.0-pre.1"
 dependencies = [
  "fc-pallet-pass",
  "fc-traits-authn",
+ "frame-support",
+ "k256",
  "log",
  "pallet-balances",
  "pallet-scheduler",
@@ -2836,6 +2837,7 @@ version = "2.0.0-pre.1"
 dependencies = [
  "fc-pallet-pass",
  "fc-traits-authn",
+ "frame-support",
  "k256",
  "log",
  "pallet-balances",
@@ -2852,8 +2854,10 @@ dependencies = [
 name = "pass-authenticators-solana"
 version = "2.0.0-pre.1"
 dependencies = [
+ "ed25519-zebra",
  "fc-pallet-pass",
  "fc-traits-authn",
+ "frame-support",
  "log",
  "pallet-balances",
  "pallet-scheduler",
@@ -2869,8 +2873,10 @@ dependencies = [
 name = "pass-authenticators-ssh"
 version = "2.0.0-pre.1"
 dependencies = [
+ "ed25519-zebra",
  "fc-pallet-pass",
  "fc-traits-authn",
+ "frame-support",
  "log",
  "pallet-balances",
  "pallet-scheduler",
@@ -2886,14 +2892,19 @@ dependencies = [
 name = "pass-authenticators-substrate-keys"
 version = "2.0.0-pre.1"
 dependencies = [
+ "ed25519-zebra",
  "fc-pallet-pass",
  "fc-traits-authn",
+ "frame-support",
+ "k256",
  "log",
  "pallet-balances",
  "pallet-scheduler",
  "parity-scale-codec",
  "polkadot-sdk-frame",
+ "rand_core",
  "scale-info",
+ "schnorrkel",
  "sp-core",
  "sp-runtime",
 ]
@@ -2908,8 +2919,10 @@ dependencies = [
  "env_logger",
  "fc-pallet-pass",
  "fc-traits-authn",
+ "frame-support",
  "futures",
  "log",
+ "p256",
  "pallet-balances",
  "pallet-scheduler",
  "parity-scale-codec",

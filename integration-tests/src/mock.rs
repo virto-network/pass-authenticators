@@ -22,6 +22,15 @@ impl Challenger for BlockChallenger {
     }
 }
 
+// `composite_authenticator!` implements `AuthenticatorBenchmarkHelper` whenever
+// `fc-traits-authn` has `runtime-benchmarks`, which needs the challenger's helper.
+#[cfg(feature = "runtime-benchmarks")]
+impl traits_authn::ChallengerBenchmarkHelper for BlockChallenger {
+    fn benchmark_context() -> Self::Context {
+        System::block_number()
+    }
+}
+
 pub type Eth = pass_ethereum::Authenticator<BlockChallenger, PassAuthority>;
 pub type Btc = pass_bitcoin::Authenticator<BlockChallenger, PassAuthority>;
 pub type Sol = pass_solana::Authenticator<BlockChallenger, PassAuthority>;

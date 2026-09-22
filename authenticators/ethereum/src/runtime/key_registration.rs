@@ -49,4 +49,9 @@ impl<Cx: Parameter + Encode + 'static> DeviceChallengeResponse<Cx> for EthRegist
     fn device_id(&self) -> &DeviceId {
         self.address.as_ref()
     }
+
+    /// The benchmarked cost of verifying this registration.
+    fn verification_weight(&self) -> Weight {
+        <() as crate::WeightInfo>::verify_attestation()
+    }
 }

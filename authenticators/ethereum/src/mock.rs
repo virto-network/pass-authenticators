@@ -89,6 +89,13 @@ impl Challenger for BlockChallenger {
     }
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+impl traits_authn::ChallengerBenchmarkHelper for BlockChallenger {
+    fn benchmark_context() -> Self::Context {
+        System::block_number()
+    }
+}
+
 impl pallet_pass::Config for Test {
     type PalletsOrigin = OriginCaller;
     type WeightInfo = ();

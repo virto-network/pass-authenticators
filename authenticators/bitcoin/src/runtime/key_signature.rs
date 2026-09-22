@@ -18,6 +18,15 @@ impl<Cx: Parameter + Encode + 'static> UserChallengeResponse<Cx> for BtcSignatur
     fn user_id(&self) -> HashedUserId {
         self.user_id
     }
+
+    /// The benchmarked cost of verifying this signature, which depends on whether its key is
+    /// compressed (BIP-137 flags 31-34) or not (27-30).
+    fn verification_weight(&self) -> Weight {
+        match self.signature[0] {
+            27..=30 => <() as crate::WeightInfo>::verify_credential_uncompressed(),
+            _ => <() as crate::WeightInfo>::verify_credential_compressed(),
+        }
+    }
 }
 
 impl<Cx: Encode> VerifyCredential<BtcSignature<Cx>> for BtcPubkeyHash {

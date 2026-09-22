@@ -111,6 +111,13 @@ impl pallet_pass::Config for Test {
     type MaxFilteredAssets = ConstU32<5>;
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+impl traits_authn::ChallengerBenchmarkHelper for BlockChallenger {
+    fn benchmark_context() -> Self::Context {
+        System::block_number()
+    }
+}
+
 pub fn new_test_ext() -> TestExternalities {
     let mut t = TestExternalities::default();
     t.execute_with(|| {

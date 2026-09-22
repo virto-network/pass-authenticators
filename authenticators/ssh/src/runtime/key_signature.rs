@@ -18,6 +18,11 @@ impl<Cx: Parameter + Encode + 'static> UserChallengeResponse<Cx> for SshSignatur
     fn user_id(&self) -> HashedUserId {
         self.user_id
     }
+
+    /// The benchmarked cost of verifying this signature.
+    fn verification_weight(&self) -> Weight {
+        <() as crate::WeightInfo>::verify_credential()
+    }
 }
 
 impl<Cx: Encode> VerifyCredential<SshSignature<Cx>> for SshPubkey {

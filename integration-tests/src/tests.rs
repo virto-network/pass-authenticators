@@ -623,3 +623,82 @@ mod domain_separation {
         })
     }
 }
+
+/// The composite reports the verification weight of whichever authenticator it carries.
+mod verification_weight {
+    use super::*;
+    use traits_authn::{DeviceChallengeResponse, UserChallengeResponse};
+
+    #[test]
+    fn composite_reports_the_inner_authenticators_weight() {
+        new_test_ext().execute_with(|| {
+            let (_, eth) = make_eth_registration(&[]);
+            let (_, sol) = make_sol_registration(&[]);
+            let (_, btc) = make_btc_registration(&[]);
+            let (_, ssh) = make_ssh_registration(&[]);
+
+            for (attestation, expected) in [
+                (eth, <() as pass_ethereum::WeightInfo>::verify_attestation()),
+                (sol, <() as pass_solana::WeightInfo>::verify_attestation()),
+                (
+                    btc,
+                    <() as pass_bitcoin::WeightInfo>::verify_attestation_compressed(),
+                ),
+                (ssh, <() as pass_ssh::WeightInfo>::verify_attestation()),
+            ] {
+                assert!(expected.ref_time() > 0);
+                assert_eq!(attestation.verification_weight(), expected);
+            }
+
+            let (_, credential) = make_eth_credential(&[]);
+            assert_eq!(
+                credential.verification_weight(),
+                <() as pass_ethereum::WeightInfo>::verify_credential()
+            );
+        })
+    }
+}
+
+/// The composite's benchmark helper (delegating to its first authenticator) produces inputs
+/// `pallet-pass` accepts.
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmark_helpers {
+    use super::*;
+    use frame::traits::TxBaseImplication;
+    use traits_authn::{AuthenticatorBenchmarkHelper, DeviceChallengeResponse};
+
+    #[test]
+    fn composite_helpers_register_and_authenticate() {
+        new_test_ext().execute_with(|| {
+            let address = PassPallet::address_for(ETH_USER);
+            let attestation = PassAuthenticator::device_attestation(&address.encode());
+            let device_id = *attestation.device_id();
+            assert_ok!(PassPallet::register(
+                RuntimeOrigin::root(),
+                ETH_USER,
+                attestation
+            ));
+
+            let extrinsic_version: u8 = 0;
+            let call: RuntimeCall = frame_system::Call::remark { remark: vec![] }.into();
+            let credential = PassAuthenticator::credential(
+                ETH_USER,
+                device_id,
+                &TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256),
+            );
+
+            assert_ok!(
+                pallet_pass::PassAuthenticate::<Test>::from(device_id, credential)
+                    .validate_only(
+                        None.into(),
+                        &call,
+                        &call.get_dispatch_info(),
+                        call.encoded_size(),
+                        TransactionSource::External,
+                        0
+                    )
+                    .map(|_| ())
+            );
+        })
+    }
+}

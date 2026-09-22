@@ -95,6 +95,13 @@ impl Challenger for BlockChallenger {
     }
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+impl traits_authn::ChallengerBenchmarkHelper for BlockChallenger {
+    fn benchmark_context() -> Self::Context {
+        System::block_number()
+    }
+}
+
 pub struct SumAddressGenerator;
 impl AddressGenerator<Test, ()> for SumAddressGenerator {
     fn generate_address(id: HashedUserId) -> AccountId {

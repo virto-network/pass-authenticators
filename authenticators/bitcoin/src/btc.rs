@@ -86,7 +86,7 @@ pub fn recover_btc_pubkey_hash(
 }
 
 /// Bitcoin HASH160: RIPEMD160(SHA256(data)).
-fn hash160(data: &[u8]) -> [u8; 20] {
+pub(crate) fn hash160(data: &[u8]) -> [u8; 20] {
     use ripemd::{Digest, Ripemd160};
     let sha = sha2_256(data);
     let mut hasher = Ripemd160::new();
