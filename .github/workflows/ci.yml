@@ -16,7 +16,7 @@ jobs:
         run: cargo fmt --all -- --check
 
       # Every crate is released in lockstep (see RELEASING.md): one workspace version,
-      # which internal dependencies must require too.
+      # which internal dependencies of published crates must require too.
       - name: Check every crate is released in lockstep
         run: |
           version="$(sed -n '/^\[workspace.package\]/,/^\[/s/^version = "\(.*\)"/\1/p' Cargo.toml)"
@@ -26,7 +26,7 @@ jobs:
             echo "::error file=Cargo.toml::Not on the workspace version $version (use version.workspace = true): $(echo $bad)"
             exit 1
           fi
-          bad="$(jq -r --arg req "^$version" '.packages[] as $p | $p.dependencies[]
+          bad="$(jq -r --arg req "^$version" '.packages[] | select(.publish != []) | . as $p | .dependencies[]
             | select(.path != null and .kind != "dev" and .req != $req)
             | "\($p.name) -> \(.name) (\(.req))"' <<< "$meta")"
           if [ -n "$bad" ]; then
