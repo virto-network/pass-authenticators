@@ -61,4 +61,6 @@ version_group = "pass-authenticators"
 
 [[package]]
 name = "pass-authenticators-integration-tests"
+# Its Cargo.toml has `publish = false`; release-plz requires the config to agree.
 release = false
+publish = false
