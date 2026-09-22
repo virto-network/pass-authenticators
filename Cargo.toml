@@ -53,13 +53,26 @@ sp-runtime = { version = "48.0.0", default-features = false }
 # FRAME
 frame = { version = "0.18.0", package = "polkadot-sdk-frame", default-features = false }
 frame-support = { version = "48.1.0", default-features = false }
+frame-system = { version = "48.0.0", default-features = false }
 pallet-balances = { version = "50.0.0", default-features = false }
 pallet-scheduler = { version = "50.0.0", default-features = false }
 
+# Bench runtime
+frame-benchmarking = { version = "49.0.0", default-features = false }
+frame-executive = { version = "48.0.0", default-features = false }
+sp-api = { version = "43.0.0", default-features = false }
+sp-block-builder = { version = "43.0.0", default-features = false }
+sp-genesis-builder = { version = "0.24.0", default-features = false }
+sp-inherents = { version = "43.0.0", default-features = false }
+sp-version = { version = "46.0.0", default-features = false }
+substrate-wasm-builder = { version = "34.0.1" }
+
 # FRAME Contrib
-traits-authn = { version = "2.2.0", package = "fc-traits-authn", default-features = false }
-pallet-pass = { version = "2.2.0", package = "fc-pallet-pass", default-features = false }
+# TODO: switch back to crates.io (`version = "2.3.0"`) before releasing 1.1.0. frame-contrib#103
+# (`AuthenticatorWeightInfo`, runtime-bindable verification weights) ships in 2.3.0.
+traits-authn = { git = "https://github.com/virto-network/frame-contrib", branch = "feat/authenticator-weight-info-v2", package = "fc-traits-authn", default-features = false }
+pallet-pass = { git = "https://github.com/virto-network/frame-contrib", branch = "feat/authenticator-weight-info-v2", package = "fc-pallet-pass", default-features = false }
 
 [workspace]
-members = ["authenticators/*"]
+members = ["authenticators/*", "bench-runtime"]
 resolver = "2"

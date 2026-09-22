@@ -25,6 +25,30 @@ pub mod weights;
 #[cfg(any(feature = "runtime", test))]
 pub use weights::WeightInfo;
 
+/// Verifying an attestation is what the `verify_attestation` benchmark measures, and verifying an
+/// assertion (including its P-256 signature) what `verify_credential` measures, both for client
+/// data `c` bytes long and authenticator data `a` bytes long.
+///
+/// `c` is capped at [`MAX_CLIENT_DATA_LEN`], the longest client data can be, and neither
+/// component goes below the shortest input the benchmarks cover (the fit extrapolates, rather
+/// than measures, below it).
+#[cfg(any(feature = "runtime", test))]
+impl<T: frame_system::Config> traits_authn::AuthenticatorWeightInfo for WeightInfo<T> {
+    fn verify_device(c: u32, a: u32) -> frame_support::weights::Weight {
+        Self::verify_attestation(
+            c.clamp(MIN_CLIENT_DATA_LEN, MAX_CLIENT_DATA_LEN),
+            a.max(MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN),
+        )
+    }
+
+    fn verify_user(c: u32, a: u32) -> frame_support::weights::Weight {
+        Self::verify_credential(
+            c.clamp(MIN_CLIENT_DATA_LEN, MAX_CLIENT_DATA_LEN),
+            a.max(MIN_ASSERTION_AUTHENTICATOR_DATA_LEN),
+        )
+    }
+}
+
 #[cfg(any(feature = "runtime", test))]
 pub use runtime::{
     Authenticator, Device, MAX_AUTHENTICATOR_DATA_LEN, MAX_CLIENT_DATA_LEN,

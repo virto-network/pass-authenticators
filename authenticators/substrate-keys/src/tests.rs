@@ -235,7 +235,7 @@ mod benchmark_helpers {
     use super::*;
     use traits_authn::{AuthenticatorBenchmarkHelper, DeviceChallengeResponse};
 
-    type Authenticator = crate::Authenticator<BlockChallenger, AuthorityId>;
+    type Authenticator = crate::Authenticator<BlockChallenger, AuthorityId, crate::WeightInfo<Test>>;
 
     #[test]
     fn helpers_register_and_authenticate() {

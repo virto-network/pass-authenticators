@@ -8,7 +8,7 @@ use webauthn_verifier::webauthn_verify as verify_signature;
 
 const LOG_TARGET: &str = "pass::webauthn";
 
-impl<Ch, A> From<Attestation<CxOf<Ch>>> for Device<Ch, A>
+impl<Ch, A, W> From<Attestation<CxOf<Ch>>> for Device<Ch, A, W>
 where
     Ch: Challenger,
     CxOf<Ch>: Parameter + Copy + 'static,

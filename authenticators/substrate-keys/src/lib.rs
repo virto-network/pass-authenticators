@@ -15,6 +15,25 @@ pub mod weights;
 
 pub use weights::WeightInfo;
 
+/// Verification doesn't depend on the lengths `c` and `a` (a registration or a signature is a
+/// fixed-size message and a signature), but on the key type, which isn't known from them. So
+/// both report the costliest key type: an upper bound for any registration or signature.
+impl<T: frame_system::Config> traits_authn::AuthenticatorWeightInfo for WeightInfo<T> {
+    fn verify_device(_c: u32, _a: u32) -> frame_support::weights::Weight {
+        Self::verify_attestation_sr25519()
+            .max(Self::verify_attestation_ed25519())
+            .max(Self::verify_attestation_ecdsa())
+            .max(Self::verify_attestation_eth())
+    }
+
+    fn verify_user(_c: u32, _a: u32) -> frame_support::weights::Weight {
+        Self::verify_credential_sr25519()
+            .max(Self::verify_credential_ed25519())
+            .max(Self::verify_credential_ecdsa())
+            .max(Self::verify_credential_eth())
+    }
+}
+
 #[cfg(any(test, feature = "runtime"))]
 mod runtime {
     use super::*;
@@ -25,8 +44,15 @@ mod runtime {
     mod key_signature;
 
     type CxOf<Ch> = <Ch as Challenger>::Context;
-    pub type Authenticator<Ch, AuthId> = Auth<Device<Ch, AuthId>, KeyRegistration<CxOf<Ch>>>;
-    pub type Device<Ch, A> = Dev<AccountId32, A, Ch, KeySignature<CxOf<Ch>>>;
+    /// The Substrate keys authenticator, for the challenger `Ch` and the authority `AuthId`.
+    ///
+    /// `W` is what verifying registrations and signatures costs, which `fc-pallet-pass` charges
+    /// on top of its own weights. Bind [`WeightInfo<Runtime>`](crate::WeightInfo) (this crate's
+    /// benchmarked weights), or a runtime's own run of this crate's benchmarks.
+    pub type Authenticator<Ch, AuthId, W> =
+        Auth<Device<Ch, AuthId, W>, KeyRegistration<CxOf<Ch>>, W>;
+    /// A Substrate public key, registered as a device. `W` is as in [`Authenticator`].
+    pub type Device<Ch, A, W> = Dev<AccountId32, A, Ch, KeySignature<CxOf<Ch>>, W>;
 }
 
 #[cfg(any(feature = "runtime", test))]

@@ -95,7 +95,7 @@ impl pallet_pass::Config for Test {
     type RegisterOrigin = EnsureRootWithSuccess<Self::AccountId, RootAccount>;
     type AddressGenerator = ();
     type Balances = Balances;
-    type Authenticator = crate::Authenticator<BlockChallenger, AuthorityId>;
+    type Authenticator = crate::Authenticator<BlockChallenger, AuthorityId, crate::WeightInfo<Test>>;
     type Scheduler = Scheduler;
     type BlockNumberProvider = System;
     type RegistrarConsideration = ();
