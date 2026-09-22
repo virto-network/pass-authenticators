@@ -61,15 +61,8 @@ pallet-balances = { version = "50.0.0", default-features = false }
 pallet-scheduler = { version = "50.0.0", default-features = false }
 
 # FRAME Contrib
-#
-# TODO: switch both to crates.io once frame-contrib publishes the 3.x release that includes
-# virto-network/frame-contrib#86, #87 and #91. Until then, they point at #91's branch
-# (`feat/authenticator-benchmark-helpers`, stacked on #87), pinned by `rev`, for the
-# `verification_weight` hooks on `DeviceChallengeResponse`/`UserChallengeResponse` and the
-# `runtime-benchmarks` helper traits (`DeviceAttestationBenchmarkHelper`,
-# `CredentialBenchmarkHelper`).
-traits-authn = { git = "https://github.com/virto-network/frame-contrib", rev = "645861905c2a2691b1f0fdbfcd2a6c8a4ff53f03", package = "fc-traits-authn", default-features = false }
-pallet-pass = { git = "https://github.com/virto-network/frame-contrib", rev = "645861905c2a2691b1f0fdbfcd2a6c8a4ff53f03", package = "fc-pallet-pass", default-features = false }
+traits-authn = { version = "3.0.0-pre.2", package = "fc-traits-authn", default-features = false }
+pallet-pass = { version = "3.0.0-pre.2", package = "fc-pallet-pass", default-features = false }
 
 [workspace]
 members = ["authenticators/*", "integration-tests"]
