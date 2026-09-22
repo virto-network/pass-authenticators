@@ -1205,8 +1205,9 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-pass"
-version = "2.1.0"
-source = "git+https://github.com/virto-network/frame-contrib?rev=2d842494b4694c3d757a7949c77085a3d16f080f#2d842494b4694c3d757a7949c77085a3d16f080f"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10128a62a76cfdce588772717e15e858057b0fb118a1c2205dcfc90e90e67751"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -1222,8 +1223,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-authn"
-version = "2.1.0"
-source = "git+https://github.com/virto-network/frame-contrib?rev=2d842494b4694c3d757a7949c77085a3d16f080f#2d842494b4694c3d757a7949c77085a3d16f080f"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e304dee8ea8fe5877b70a72d9cab9f83cb176e31202206e1a9b0816cac863c3"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -1234,8 +1236,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-authn-proc"
-version = "2.1.0"
-source = "git+https://github.com/virto-network/frame-contrib?rev=2d842494b4694c3d757a7949c77085a3d16f080f#2d842494b4694c3d757a7949c77085a3d16f080f"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fdd406933a4efc6d58678366f5889c1b436b647e143af2f08b271a1e2db8454e"
 dependencies = [
  "proc-macro-crate",
  "quote",
