@@ -39,13 +39,32 @@ Crates:
 ### ⚠ Breaking changes
 
 - Update to polkadot-sdk `stable2606-2`, and depend on `fc-traits-authn` and
-  `fc-pallet-pass` `2.x` from crates.io instead of frame-contrib's git repository.
+  `fc-pallet-pass` `2.2` (or later `2.x`) from crates.io instead of frame-contrib's git
+  repository. `2.2` is required for the verification weights and benchmark helpers below.
 - The `webauthn-verifier` package is renamed `pass-authenticators-webauthn-verifier`.
   Keep using it under the `webauthn-verifier` dependency key with
   `package = "pass-authenticators-webauthn-verifier"`; the Rust crate name
   (`webauthn_verifier`) is unchanged.
 - All crates now share one version and are released together. Depend on the same
   version of every `pass-authenticators-*` crate.
+
+### Added
+
+- Every authenticator reports what verifying its input costs, through frame-contrib 2.2's
+  `verification_weight`. `pallet-pass` charges it on registration, on adding a device and on
+  every authenticated transaction:
+  - *(pass-authenticators-webauthn)* a base plus per-byte cost on client data (capped at
+    1024 bytes) and authenticator data, including the P-256 signature check, for both
+    attestations and credentials;
+  - *(pass-authenticators-substrate-keys)* one weight per key type (sr25519, ed25519, ecdsa,
+    eth).
+- Benchmarks for that verification: each crate has a benchmarking-only pallet, listed in a
+  runtime's benchmarks (not in `construct_runtime!`), that runs the full verification path with
+  worst-case inputs. The committed weights are labelled placeholders until a run on reference
+  hardware; the README has the command.
+- Benchmark helpers (frame-contrib 2.2's `DeviceAttestationBenchmarkHelper` and
+  `CredentialBenchmarkHelper`), so `pallet-pass`'s benchmarks get valid device attestations and
+  credentials from the authenticator instead of from the runtime.
 
 ### Changed
 
