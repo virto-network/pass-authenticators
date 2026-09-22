@@ -16,6 +16,7 @@ bitflags = { workspace = true, optional = true }
 byteorder = { workspace = true, optional = true }
 codec.workspace = true
 frame = { workspace = true, optional = true }
+frame-support.workspace = true
 log.workspace = true
 coset = { workspace = true, optional = true }
 scale-info.workspace = true
@@ -24,6 +25,9 @@ serde_json = { workspace = true, optional = true }
 traits-authn.workspace = true
 url.workspace = true
 webauthn-verifier.workspace = true
+
+# Benchmarking
+p256 = { workspace = true, optional = true, features = ["ecdsa", "pkcs8"] }
 
 [dev-dependencies]
 env_logger = "0.11.8"
@@ -47,6 +51,16 @@ runtime = [
   "serde",
   "serde_json",
 ]
+runtime-benchmarks = [
+  "runtime",
+  "dep:p256",
+  "frame/runtime-benchmarks",
+  "frame-support/runtime-benchmarks",
+  "pallet-balances/runtime-benchmarks",
+  "pallet-pass/runtime-benchmarks",
+  "pallet-scheduler/runtime-benchmarks",
+  "traits-authn/runtime-benchmarks",
+]
 std = [
   "base64/std",
   "bitflags/std",
@@ -54,8 +68,10 @@ std = [
   "codec/std",
   "coset/std",
   "frame?/std",
+  "frame-support/std",
   "futures/std",
   "log/std",
+  "p256?/std",
   "pallet-balances/std",
   "pallet-pass/std",
   "pallet-scheduler/std",
@@ -68,6 +84,7 @@ std = [
 ]
 try-runtime = [
   "frame/try-runtime",
+  "frame-support/try-runtime",
   "pallet-balances/try-runtime",
   "pallet-pass/try-runtime",
   "pallet-scheduler/try-runtime",

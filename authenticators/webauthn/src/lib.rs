@@ -13,13 +13,24 @@ use traits_authn::{
 #[cfg(any(feature = "runtime", test))]
 use {codec::MaxEncodedLen, scale_info::TypeInfo};
 
+#[cfg(feature = "runtime-benchmarks")]
+pub mod benchmarking;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+#[cfg(any(feature = "runtime", test))]
+pub mod weights;
 
 #[cfg(any(feature = "runtime", test))]
-pub use runtime::{Authenticator, Device};
+pub use weights::WeightInfo;
+
+#[cfg(any(feature = "runtime", test))]
+pub use runtime::{
+    Authenticator, Device, MAX_AUTHENTICATOR_DATA_LEN, MAX_CLIENT_DATA_LEN,
+    MIN_ASSERTION_AUTHENTICATOR_DATA_LEN, MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN,
+    MIN_CLIENT_DATA_LEN,
+};
 #[cfg(any(feature = "runtime", test))]
 mod runtime;
 

@@ -1,5 +1,6 @@
 use super::*;
 use crate::runtime::authenticator_data::AuthenticatorFlags;
+use crate::weights::WeightInfo;
 use authenticator_data::AuthenticatorData;
 use client_data::RawClientData;
 use frame::deps::sp_core::hexdisplay::AsBytesRef;
@@ -81,5 +82,17 @@ where
 
     fn device_id(&self) -> &DeviceId {
         &self.meta.device_id
+    }
+
+    /// The benchmarked cost of verifying this attestation, which grows with the length of its
+    /// client data and authenticator data (never below the shortest ones benchmarked).
+    fn verification_weight(&self) -> Weight {
+        <() as WeightInfo>::verify_attestation(
+            component(&self.client_data, MIN_CLIENT_DATA_LEN),
+            component(
+                &self.authenticator_data,
+                MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN,
+            ),
+        )
     }
 }

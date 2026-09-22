@@ -1,6 +1,7 @@
 use super::*;
 use crate::runtime::authenticator_data::{AuthenticatorData, AuthenticatorFlags};
 use crate::runtime::client_data::RawClientData;
+use crate::weights::WeightInfo;
 use frame::deps::sp_core::hexdisplay::AsBytesRef;
 use traits_authn::{HashedUserId, UserChallengeResponse};
 
@@ -47,5 +48,18 @@ where
 
     fn user_id(&self) -> HashedUserId {
         self.meta.user_id
+    }
+
+    /// The benchmarked cost of verifying this assertion (including its P-256 signature), which
+    /// grows with the length of its client data and authenticator data (never below the
+    /// shortest ones benchmarked).
+    fn verification_weight(&self) -> Weight {
+        <() as WeightInfo>::verify_credential(
+            component(&self.client_data, MIN_CLIENT_DATA_LEN),
+            component(
+                &self.authenticator_data,
+                MIN_ASSERTION_AUTHENTICATOR_DATA_LEN,
+            ),
+        )
     }
 }
