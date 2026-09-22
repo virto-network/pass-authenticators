@@ -26,6 +26,7 @@ passkey-types = { version = "0.4.0", default-features = false, features = [
 ] }
 public-suffix = "0.1.2"
 rand = "0.8.5"
+rand_core = { version = "0.6.4", default-features = false }
 sha2 = { version = "0.10.8", default-features = false }
 url = { version = "2.5.8", default-features = false }
 webauthn-verifier = { package = "pass-authenticators-webauthn-verifier", path = "authenticators/webauthn/verifier", version = "1.0.0", default-features = false }
@@ -43,17 +44,27 @@ serde = { version = "1.0.219", default-features = false }
 serde_json = { version = "1.0.141", default-features = false }
 
 # Substrate
+ed25519-zebra = { version = "4.1.0", default-features = false }
+k256 = { version = "0.13.4", default-features = false }
+schnorrkel = { version = "0.11.5", default-features = false }
 sp-core = { version = "43.0.0", default-features = false }
 sp-runtime = { version = "48.0.0", default-features = false }
 
 # FRAME
 frame = { version = "0.18.0", package = "polkadot-sdk-frame", default-features = false }
+frame-support = { version = "48.1.0", default-features = false }
 pallet-balances = { version = "50.0.0", default-features = false }
 pallet-scheduler = { version = "50.0.0", default-features = false }
 
 # FRAME Contrib
-traits-authn = { version = "2.0.0", package = "fc-traits-authn", default-features = false }
-pallet-pass = { version = "2.0.0", package = "fc-pallet-pass", default-features = false }
+#
+# TODO: switch both to crates.io (`version = "2.2.0"`) once frame-contrib 2.2.0 is published.
+# Until then, they point at frame-contrib's `release/v2`, pinned by `rev` to the merge of
+# virto-network/frame-contrib#90 (on top of #84 and #85), for the `verification_weight` hooks
+# on `DeviceChallengeResponse`/`UserChallengeResponse` and the `runtime-benchmarks` helper
+# traits (`DeviceAttestationBenchmarkHelper`, `CredentialBenchmarkHelper`).
+traits-authn = { git = "https://github.com/virto-network/frame-contrib", rev = "2d842494b4694c3d757a7949c77085a3d16f080f", package = "fc-traits-authn", default-features = false }
+pallet-pass = { git = "https://github.com/virto-network/frame-contrib", rev = "2d842494b4694c3d757a7949c77085a3d16f080f", package = "fc-pallet-pass", default-features = false }
 
 [workspace]
 members = ["authenticators/*"]

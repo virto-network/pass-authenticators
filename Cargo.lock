@@ -1205,9 +1205,8 @@ dependencies = [
 
 [[package]]
 name = "fc-pallet-pass"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8493686461951ac9b3502aff08e35a4a916487778f9cc9a045fc0927bf3fa18e"
+version = "2.1.0"
+source = "git+https://github.com/virto-network/frame-contrib?rev=2d842494b4694c3d757a7949c77085a3d16f080f#2d842494b4694c3d757a7949c77085a3d16f080f"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -1223,9 +1222,8 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-authn"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "776acbac5527d31ffe01910013e6860ea5922c01443cafec5ad6866752857737"
+version = "2.1.0"
+source = "git+https://github.com/virto-network/frame-contrib?rev=2d842494b4694c3d757a7949c77085a3d16f080f#2d842494b4694c3d757a7949c77085a3d16f080f"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -1236,9 +1234,8 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-authn-proc"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ee1393b6bfd93ea882ca9d57357ed2dc24fd2c6ec1e9917cf146ae91569fd07"
+version = "2.1.0"
+source = "git+https://github.com/virto-network/frame-contrib?rev=2d842494b4694c3d757a7949c77085a3d16f080f#2d842494b4694c3d757a7949c77085a3d16f080f"
 dependencies = [
  "proc-macro-crate",
  "quote",
@@ -2762,14 +2759,19 @@ dependencies = [
 name = "pass-authenticators-substrate-keys"
 version = "1.0.0"
 dependencies = [
+ "ed25519-zebra",
  "fc-pallet-pass",
  "fc-traits-authn",
+ "frame-support",
+ "k256",
  "log",
  "pallet-balances",
  "pallet-scheduler",
  "parity-scale-codec",
  "polkadot-sdk-frame",
+ "rand_core",
  "scale-info",
+ "schnorrkel",
  "sp-core",
  "sp-runtime",
 ]
@@ -2784,8 +2786,10 @@ dependencies = [
  "env_logger",
  "fc-pallet-pass",
  "fc-traits-authn",
+ "frame-support",
  "futures",
  "log",
+ "p256",
  "pallet-balances",
  "pallet-scheduler",
  "parity-scale-codec",
