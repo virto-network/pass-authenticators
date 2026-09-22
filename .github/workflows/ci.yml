@@ -15,6 +15,31 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
+      # Every crate is released in lockstep (see RELEASING.md): one workspace version,
+      # which internal dependencies of published crates must require too, and an entry in release-plz.toml.
+      - name: Check every crate is released in lockstep
+        run: |
+          missing="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name' \
+            | while read -r name; do grep -qx "name = \"$name\"" release-plz.toml || echo "$name"; done)"
+          if [ -n "$missing" ]; then
+            echo "::error file=release-plz.toml::Missing from release-plz.toml (see CONTRIBUTING.md#adding-a-crate): $(echo $missing)"
+            exit 1
+          fi
+          version="$(sed -n '/^\[workspace.package\]/,/^\[/s/^version = "\(.*\)"/\1/p' Cargo.toml)"
+          meta="$(cargo metadata --no-deps --format-version 1)"
+          bad="$(jq -r --arg v "$version" '.packages[] | select(.version != $v) | "\(.name) \(.version)"' <<< "$meta")"
+          if [ -n "$bad" ]; then
+            echo "::error file=Cargo.toml::Not on the workspace version $version (use version.workspace = true): $(echo $bad)"
+            exit 1
+          fi
+          bad="$(jq -r --arg req "^$version" '.packages[] | select(.publish != []) | . as $p | .dependencies[]
+            | select(.path != null and .kind != "dev" and .req != $req)
+            | "\($p.name) -> \(.name) (\(.req))"' <<< "$meta")"
+          if [ -n "$bad" ]; then
+            echo "::error file=Cargo.toml::Internal dependencies must require version = \"$version\": $(echo $bad)"
+            exit 1
+          fi
+
   check:
     needs: lint
     runs-on: ubuntu-latest
@@ -35,6 +60,16 @@ jobs:
       - name: Check Build
         run: |
           cargo check --release --locked --all-features --workspace
+
+      - name: Install wasm32v1-none target
+        run: rustup target add wasm32v1-none
+
+      - name: Check no_std build
+        run: |
+          cargo check --release --locked --target wasm32v1-none --no-default-features --features runtime \
+            -p pass-authenticators-webauthn -p pass-authenticators-substrate-keys \
+            -p pass-authenticators-ethereum -p pass-authenticators-bitcoin \
+            -p pass-authenticators-nostr -p pass-authenticators-solana -p pass-authenticators-ssh
 
   clippy:
     needs: lint

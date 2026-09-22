@@ -1,0 +1,64 @@
+# release-plz configuration — see RELEASING.md.
+#
+# All crates are released in lockstep: they share one version (`version_group`)
+# and one `vX.Y.Z` tag, created on the `pass-authenticators-webauthn` entry below.
+#
+# release-plz does not write the changelog. Its per-package commit filtering
+# drops cross-crate changes, so ./CHANGELOG.md is written by git-cliff
+# (cliff.toml) in the release workflow, and the GitHub release is created from
+# that curated section. The version is bumped from the conventional commit
+# titles on `main`, with cargo-semver-checks as a safety net:
+#
+#   feat!: / fix!: / `BREAKING CHANGE:` footer -> major
+#   feat:                                       -> minor
+#   anything else                               -> patch
+#
+# While the version is a prerelease (`2.0.0-pre.N`), every release bumps the
+# prerelease number instead. Leave the prerelease by setting the version by hand
+# (see RELEASING.md).
+
+[workspace]
+changelog_update = false
+git_release_enable = false
+git_tag_enable = false
+semver_check = true
+pr_name = "chore: release v{{ version }}"
+pr_labels = ["release"]
+
+[[package]]
+name = "pass-authenticators-webauthn"
+version_group = "pass-authenticators"
+git_tag_enable = true
+git_tag_name = "v{{ version }}"
+
+[[package]]
+name = "pass-authenticators-webauthn-verifier"
+version_group = "pass-authenticators"
+
+[[package]]
+name = "pass-authenticators-substrate-keys"
+version_group = "pass-authenticators"
+
+[[package]]
+name = "pass-authenticators-ethereum"
+version_group = "pass-authenticators"
+
+[[package]]
+name = "pass-authenticators-bitcoin"
+version_group = "pass-authenticators"
+
+[[package]]
+name = "pass-authenticators-nostr"
+version_group = "pass-authenticators"
+
+[[package]]
+name = "pass-authenticators-solana"
+version_group = "pass-authenticators"
+
+[[package]]
+name = "pass-authenticators-ssh"
+version_group = "pass-authenticators"
+
+[[package]]
+name = "pass-authenticators-integration-tests"
+release = false

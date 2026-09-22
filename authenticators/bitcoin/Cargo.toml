@@ -1,10 +1,14 @@
 [package]
 authors.workspace = true
+description = "Bitcoin authenticator for FRAME Contrib's pallet-pass: registers Bitcoin keys as devices and verifies their signed messages (BIP-137)."
 edition.workspace = true
+keywords = ["polkadot", "substrate", "bitcoin", "signature", "authentication"]
+categories = ["authentication", "cryptography", "no-std"]
 license.workspace = true
 name = "pass-authenticators-bitcoin"
+readme.workspace = true
 repository.workspace = true
-version = "0.1.0"
+version.workspace = true
 
 [dependencies]
 codec.workspace = true

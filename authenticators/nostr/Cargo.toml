@@ -1,10 +1,14 @@
 [package]
 authors.workspace = true
+description = "Nostr authenticator for FRAME Contrib's pallet-pass: registers Nostr keys as devices and verifies their BIP-340 Schnorr signatures."
 edition.workspace = true
+keywords = ["polkadot", "substrate", "nostr", "schnorr", "authentication"]
+categories = ["authentication", "cryptography", "no-std"]
 license.workspace = true
 name = "pass-authenticators-nostr"
+readme.workspace = true
 repository.workspace = true
-version = "0.1.0"
+version.workspace = true
 
 [dependencies]
 codec.workspace = true

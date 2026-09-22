@@ -1,10 +1,14 @@
 [package]
 authors.workspace = true
+description = "Ethereum authenticator for FRAME Contrib's pallet-pass: registers Ethereum accounts as devices and verifies their personal_sign (EIP-191) signatures."
 edition.workspace = true
+keywords = ["polkadot", "substrate", "ethereum", "signature", "authentication"]
+categories = ["authentication", "cryptography", "no-std"]
 license.workspace = true
 name = "pass-authenticators-ethereum"
+readme.workspace = true
 repository.workspace = true
-version = "0.1.0"
+version.workspace = true
 
 [dependencies]
 codec.workspace = true

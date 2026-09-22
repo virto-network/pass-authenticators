@@ -1,10 +1,14 @@
 [package]
 authors.workspace = true
+description = "Substrate keys authenticator for FRAME Contrib's pallet-pass: registers sr25519/ed25519/ecdsa public keys as devices and verifies their signatures."
 edition.workspace = true
+keywords = ["polkadot", "substrate", "frame", "signature", "authentication"]
+categories = ["authentication", "cryptography", "no-std"]
 license.workspace = true
 name = "pass-authenticators-substrate-keys"
+readme.workspace = true
 repository.workspace = true
-version = "0.1.0"
+version.workspace = true
 
 [dependencies]
 codec.workspace = true
