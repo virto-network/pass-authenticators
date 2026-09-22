@@ -12,6 +12,7 @@ version.workspace = true
 
 [dependencies]
 codec.workspace = true
+frame-support = { workspace = true, optional = true }
 log.workspace = true
 scale-info = { workspace = true, optional = true }
 sp-core = { workspace = true, optional = true }
@@ -19,8 +20,12 @@ sp-io = { workspace = true, optional = true }
 sp-runtime = { workspace = true, optional = true }
 traits-authn.workspace = true
 
+# Benchmarking
+frame = { workspace = true, optional = true, features = ["runtime"] }
+k256 = { workspace = true, optional = true, features = ["ecdsa"] }
+
 [dev-dependencies]
-frame.workspace = true
+frame = { workspace = true, features = ["runtime"] }
 pallet-balances.workspace = true
 pallet-pass.workspace = true
 pallet-scheduler.workspace = true
@@ -28,6 +33,7 @@ pallet-scheduler.workspace = true
 [features]
 default = ["std", "runtime", "full-crypto"]
 runtime = [
+  "dep:frame-support",
   "dep:scale-info",
   "dep:sp-core",
   "dep:sp-io",
@@ -35,8 +41,22 @@ runtime = [
   "traits-authn/runtime",
 ]
 full-crypto = ["runtime", "sp-core/full_crypto"]
+runtime-benchmarks = [
+  "runtime",
+  "dep:frame",
+  "dep:k256",
+  "frame/runtime-benchmarks",
+  "frame-support?/runtime-benchmarks",
+  "pallet-balances/runtime-benchmarks",
+  "pallet-pass/runtime-benchmarks",
+  "pallet-scheduler/runtime-benchmarks",
+  "sp-runtime?/runtime-benchmarks",
+  "traits-authn/runtime-benchmarks",
+]
 std = [
   "codec/std",
+  "frame-support?/std",
+  "k256?/std",
   "frame/std",
   "log/std",
   "pallet-balances/std",
@@ -49,9 +69,10 @@ std = [
   "traits-authn/std",
 ]
 try-runtime = [
+  "frame-support?/try-runtime",
   "pallet-pass/try-runtime",
   "pallet-balances/try-runtime",
   "pallet-scheduler/try-runtime",
   "frame/try-runtime",
-  "sp-runtime/try-runtime",
+  "sp-runtime?/try-runtime",
 ]

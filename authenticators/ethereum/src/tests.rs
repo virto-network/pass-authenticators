@@ -275,3 +275,78 @@ mod eth_address {
         })
     }
 }
+
+mod verification_weight {
+    use super::*;
+    use crate::WeightInfo;
+    use traits_authn::{DeviceChallengeResponse, UserChallengeResponse};
+
+    #[test]
+    fn weights_are_non_zero_and_the_benchmarked_ones() {
+        new_test_ext().execute_with(|| {
+            let (message, address, signature) = make_signature(&[]);
+
+            let registration = EthRegistration {
+                address,
+                message: message.clone(),
+                signature,
+            };
+            assert!(registration.verification_weight().ref_time() > 0);
+            assert_eq!(
+                registration.verification_weight(),
+                <() as WeightInfo>::verify_attestation()
+            );
+
+            let credential = EthSignature {
+                user_id: USER,
+                message,
+                signature,
+            };
+            assert!(credential.verification_weight().ref_time() > 0);
+            assert_eq!(
+                credential.verification_weight(),
+                <() as WeightInfo>::verify_credential()
+            );
+        })
+    }
+}
+
+/// The helpers `fc-pallet-pass`'s benchmarks use produce inputs the pallet accepts.
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmark_helpers {
+    use super::*;
+    use frame::traits::TxBaseImplication;
+    use traits_authn::{AuthenticatorBenchmarkHelper, DeviceChallengeResponse};
+
+    type Authenticator = crate::Authenticator<BlockChallenger, AuthorityId>;
+
+    #[test]
+    fn helpers_register_and_authenticate() {
+        new_test_ext().execute_with(|| {
+            let attestation = Authenticator::device_attestation(&UserAddress::get().encode());
+            let device_id = *attestation.device_id();
+            assert_ok!(Pass::register(RuntimeOrigin::root(), USER, attestation));
+
+            let extrinsic_version: u8 = 0;
+            let call: RuntimeCall = frame_system::Call::remark { remark: vec![] }.into();
+            let credential = Authenticator::credential(
+                USER,
+                device_id,
+                &TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256),
+            );
+
+            assert_ok!(
+                pallet_pass::PassAuthenticate::<Test>::from(device_id, credential)
+                    .validate_only(
+                        None.into(),
+                        &call,
+                        &call.get_dispatch_info(),
+                        call.encoded_size(),
+                        TransactionSource::External,
+                        0
+                    )
+                    .map(|_| ())
+            );
+        })
+    }
+}

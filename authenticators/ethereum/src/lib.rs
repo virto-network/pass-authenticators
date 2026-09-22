@@ -14,10 +14,17 @@ use {
     scale_info::TypeInfo,
 };
 
+#[cfg(feature = "runtime-benchmarks")]
+pub mod benchmarking;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+#[cfg(feature = "runtime")]
+pub mod weights;
+
+#[cfg(feature = "runtime")]
+pub use weights::WeightInfo;
 
 #[cfg(feature = "runtime")]
 mod runtime {
