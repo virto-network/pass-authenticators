@@ -19,7 +19,7 @@ use passkey_types::webauthn::{
 };
 use passkey_types::{Bytes, Passkey};
 use traits_authn::{util::AuthorityFromPalletId, Challenger, ExtrinsicContext, HashedUserId};
-use url_evil::Url;
+use url::Url;
 
 #[frame_construct_runtime]
 pub mod runtime {
