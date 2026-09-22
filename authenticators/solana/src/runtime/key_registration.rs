@@ -29,4 +29,9 @@ impl<Cx: Parameter + Encode + 'static> DeviceChallengeResponse<Cx> for SolRegist
     fn device_id(&self) -> &DeviceId {
         self.pubkey.as_ref()
     }
+
+    /// The benchmarked cost of verifying this registration.
+    fn verification_weight(&self) -> Weight {
+        <() as crate::WeightInfo>::verify_attestation()
+    }
 }
