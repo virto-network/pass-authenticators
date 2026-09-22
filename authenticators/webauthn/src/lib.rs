@@ -13,13 +13,24 @@ use {
     scale_info::TypeInfo,
 };
 
+#[cfg(feature = "runtime-benchmarks")]
+pub mod benchmarking;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+#[cfg(feature = "runtime")]
+pub mod weights;
 
 #[cfg(feature = "runtime")]
-pub use runtime::{Authenticator, Device};
+pub use weights::WeightInfo;
+
+#[cfg(feature = "runtime")]
+pub use runtime::{
+    Authenticator, Device, MAX_AUTHENTICATOR_DATA_LEN, MAX_CLIENT_DATA_LEN,
+    MIN_ASSERTION_AUTHENTICATOR_DATA_LEN, MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN,
+    MIN_CLIENT_DATA_LEN,
+};
 #[cfg(feature = "runtime")]
 mod runtime;
 
