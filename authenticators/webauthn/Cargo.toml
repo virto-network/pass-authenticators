@@ -1,10 +1,14 @@
 [package]
 authors.workspace = true
+description = "WebAuthn (passkey) authenticator for FRAME Contrib's pallet-pass: registers credentials as devices and verifies their assertions."
 edition.workspace = true
+keywords = ["polkadot", "substrate", "webauthn", "passkey", "authentication"]
+categories = ["authentication", "cryptography", "no-std"]
 license.workspace = true
 name = "pass-authenticators-webauthn"
+readme.workspace = true
 repository.workspace = true
-version = "0.1.0"
+version.workspace = true
 
 [dependencies]
 base64 = { workspace = true, features = ["alloc"] }
@@ -32,7 +36,6 @@ passkey-authenticator.workspace = true
 passkey-client.workspace = true
 passkey-types.workspace = true
 public-suffix.workspace = true
-url-evil.workspace = true
 
 [features]
 default = ["std", "runtime"]
@@ -63,7 +66,6 @@ std = [
   "serde_json?/std",
   "traits-authn/std",
   "url/std",
-  "url-evil/std",
   "webauthn-verifier/std",
 ]
 try-runtime = [

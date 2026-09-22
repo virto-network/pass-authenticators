@@ -1,10 +1,14 @@
 [package]
 authors.workspace = true
+description = "SSH authenticator for FRAME Contrib's pallet-pass: registers SSH Ed25519 keys as devices and verifies their SSHSIG signatures."
 edition.workspace = true
+keywords = ["polkadot", "substrate", "ssh", "ed25519", "authentication"]
+categories = ["authentication", "cryptography", "no-std"]
 license.workspace = true
 name = "pass-authenticators-ssh"
+readme.workspace = true
 repository.workspace = true
-version = "0.1.0"
+version.workspace = true
 
 [dependencies]
 codec.workspace = true

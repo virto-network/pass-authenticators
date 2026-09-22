@@ -1,10 +1,14 @@
 [package]
 authors.workspace = true
+description = "Solana authenticator for FRAME Contrib's pallet-pass: registers Solana wallets as devices and verifies their Ed25519 signatures."
 edition.workspace = true
+keywords = ["polkadot", "substrate", "solana", "ed25519", "authentication"]
+categories = ["authentication", "cryptography", "no-std"]
 license.workspace = true
 name = "pass-authenticators-solana"
+readme.workspace = true
 repository.workspace = true
-version = "0.1.0"
+version.workspace = true
 
 [dependencies]
 codec.workspace = true
