@@ -45,4 +45,13 @@ impl<Cx: Parameter + Encode + 'static> DeviceChallengeResponse<Cx> for BtcRegist
     fn device_id(&self) -> &DeviceId {
         self.pubkey_hash.as_ref()
     }
+
+    /// The benchmarked cost of verifying this registration, which depends on whether its key is
+    /// compressed (BIP-137 flags 31-34) or not (27-30).
+    fn verification_weight(&self) -> Weight {
+        match self.signature[0] {
+            27..=30 => <() as crate::WeightInfo>::verify_attestation_uncompressed(),
+            _ => <() as crate::WeightInfo>::verify_attestation_compressed(),
+        }
+    }
 }
