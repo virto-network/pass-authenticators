@@ -26,6 +26,19 @@ traits-authn.workspace = true
 
 [features]
 default = ["std"]
+runtime-benchmarks = [
+  "frame/runtime-benchmarks",
+  "pallet-balances/runtime-benchmarks",
+  "pallet-pass/runtime-benchmarks",
+  "pallet-scheduler/runtime-benchmarks",
+  "pass-bitcoin/runtime-benchmarks",
+  "pass-ethereum/runtime-benchmarks",
+  "pass-nostr/runtime-benchmarks",
+  "pass-solana/runtime-benchmarks",
+  "pass-ssh/runtime-benchmarks",
+  "sp-runtime/runtime-benchmarks",
+  "traits-authn/runtime-benchmarks",
+]
 std = [
   "codec/std",
   "frame/std",
