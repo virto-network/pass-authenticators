@@ -1,4 +1,5 @@
 use super::*;
+use crate::weights::WeightInfo;
 use sp_runtime::traits::Verify;
 use traits_authn::UserChallengeResponse;
 
@@ -19,6 +20,16 @@ impl<Cx: Parameter + 'static> UserChallengeResponse<Cx> for KeySignature<Cx> {
 
     fn user_id(&self) -> HashedUserId {
         self.user_id
+    }
+
+    /// The benchmarked cost of verifying a signature of this key type.
+    fn verification_weight(&self) -> Weight {
+        match self.signature {
+            MultiSignature::Sr25519(_) => <() as WeightInfo>::verify_credential_sr25519(),
+            MultiSignature::Ed25519(_) => <() as WeightInfo>::verify_credential_ed25519(),
+            MultiSignature::Ecdsa(_) => <() as WeightInfo>::verify_credential_ecdsa(),
+            MultiSignature::Eth(_) => <() as WeightInfo>::verify_credential_eth(),
+        }
     }
 }
 
