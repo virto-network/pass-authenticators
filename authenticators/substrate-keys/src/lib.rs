@@ -5,10 +5,15 @@ use scale_info::TypeInfo;
 use sp_runtime::{AccountId32, MultiSignature};
 use traits_authn::{AuthorityId, Challenge, HashedUserId};
 
+#[cfg(feature = "runtime-benchmarks")]
+pub mod benchmarking;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+pub mod weights;
+
+pub use weights::WeightInfo;
 
 #[cfg(any(test, feature = "runtime"))]
 mod runtime {

@@ -1,5 +1,6 @@
 use super::*;
 
+use crate::weights::WeightInfo;
 use sp_runtime::traits::Verify;
 
 impl<Ch: Challenger, AuthId> From<KeyRegistration<CxOf<Ch>>> for Device<Ch, AuthId> {
@@ -29,5 +30,15 @@ impl<Cx: Parameter + 'static> DeviceChallengeResponse<Cx> for KeyRegistration<Cx
 
     fn device_id(&self) -> &DeviceId {
         self.public.as_ref()
+    }
+
+    /// The benchmarked cost of verifying a registration signed with this key type.
+    fn verification_weight(&self) -> Weight {
+        match self.signature {
+            MultiSignature::Sr25519(_) => <() as WeightInfo>::verify_attestation_sr25519(),
+            MultiSignature::Ed25519(_) => <() as WeightInfo>::verify_attestation_ed25519(),
+            MultiSignature::Ecdsa(_) => <() as WeightInfo>::verify_attestation_ecdsa(),
+            MultiSignature::Eth(_) => <() as WeightInfo>::verify_attestation_eth(),
+        }
     }
 }

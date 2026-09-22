@@ -107,6 +107,13 @@ impl pallet_pass::Config for Test {
     type MaxSessionDuration = ConstU64<10>;
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+impl traits_authn::ChallengerBenchmarkHelper for BlockChallenger {
+    fn benchmark_context() -> Self::Context {
+        System::block_number()
+    }
+}
+
 pub fn new_test_ext() -> TestExternalities {
     let mut t = TestExternalities::default();
     t.execute_with(|| {
