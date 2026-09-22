@@ -1,10 +1,14 @@
 [package]
 authors.workspace = true
+description = "no_std verifier for WebAuthn ES256 (P-256) assertion signatures, used by pass-authenticators-webauthn."
 edition.workspace = true
+keywords = ["webauthn", "passkey", "p256", "signature", "no-std"]
+categories = ["authentication", "cryptography", "no-std"]
 license.workspace = true
-name = "webauthn-verifier"
+name = "pass-authenticators-webauthn-verifier"
+readme.workspace = true
 repository.workspace = true
-version = "0.1.0"
+version.workspace = true
 
 [dependencies]
 log.workspace = true

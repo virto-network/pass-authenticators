@@ -15,6 +15,25 @@ jobs:
       - name: Check formatting
         run: cargo fmt --all -- --check
 
+      # Every crate is released in lockstep (see RELEASING.md): one workspace version,
+      # which internal dependencies of published crates must require too.
+      - name: Check every crate is released in lockstep
+        run: |
+          version="$(sed -n '/^\[workspace.package\]/,/^\[/s/^version = "\(.*\)"/\1/p' Cargo.toml)"
+          meta="$(cargo metadata --no-deps --format-version 1)"
+          bad="$(jq -r --arg v "$version" '.packages[] | select(.version != $v) | "\(.name) \(.version)"' <<< "$meta")"
+          if [ -n "$bad" ]; then
+            echo "::error file=Cargo.toml::Not on the workspace version $version (use version.workspace = true): $(echo $bad)"
+            exit 1
+          fi
+          bad="$(jq -r --arg req "^$version" '.packages[] | select(.publish != []) | . as $p | .dependencies[]
+            | select(.path != null and .kind != "dev" and .req != $req)
+            | "\($p.name) -> \(.name) (\(.req))"' <<< "$meta")"
+          if [ -n "$bad" ]; then
+            echo "::error file=Cargo.toml::Internal dependencies must require version = \"$version\": $(echo $bad)"
+            exit 1
+          fi
+
   check:
     needs: lint
     runs-on: ubuntu-latest
@@ -35,6 +54,14 @@ jobs:
       - name: Check Build
         run: |
           cargo check --release --locked --all-features --workspace
+
+      - name: Install wasm32v1-none target
+        run: rustup target add wasm32v1-none
+
+      - name: Check no_std build
+        run: |
+          cargo check --release --locked --target wasm32v1-none --no-default-features --features runtime \
+            -p pass-authenticators-webauthn -p pass-authenticators-substrate-keys
 
   clippy:
     needs: lint
