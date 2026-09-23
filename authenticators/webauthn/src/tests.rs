@@ -222,6 +222,7 @@ mod assertion {
 
 mod verification_weight {
     use super::*;
+    use crate::WeightInfo as _;
     use crate::{
         MAX_CLIENT_DATA_LEN, MIN_ASSERTION_AUTHENTICATOR_DATA_LEN,
         MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN, MIN_CLIENT_DATA_LEN,
@@ -230,8 +231,10 @@ mod verification_weight {
         AuthenticatorWeightInfo, DeviceChallengeResponse, UserAuthenticator, UserChallengeResponse,
     };
 
-    /// The weights the mock runtime binds.
-    type Weights = crate::WeightInfo<Test>;
+    /// The weights the mock runtime binds...
+    type Weights = crate::DefaultWeights<Test>;
+    /// ...which are the ones this crate's benchmarks measured.
+    type Measured = crate::SubstrateWeight<Test>;
     type Authn = <Test as pallet_pass::Config>::Authenticator;
     type Device = <Authn as traits_authn::Authenticator>::Device;
 
@@ -271,12 +274,12 @@ mod verification_weight {
     fn verify_device_maps_onto_verify_attestation() {
         assert_eq!(
             <Weights as AuthenticatorWeightInfo>::verify_device(300, 500),
-            Weights::verify_attestation(300, 500)
+            Measured::verify_attestation(300, 500)
         );
         // Never below the shortest inputs benchmarked...
         assert_eq!(
             <Weights as AuthenticatorWeightInfo>::verify_device(0, 0),
-            Weights::verify_attestation(
+            Measured::verify_attestation(
                 MIN_CLIENT_DATA_LEN,
                 MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN
             )
@@ -284,7 +287,7 @@ mod verification_weight {
         // ...and client data is never longer than its cap, while authenticator data can be.
         assert_eq!(
             <Weights as AuthenticatorWeightInfo>::verify_device(10_000, 10_000),
-            Weights::verify_attestation(MAX_CLIENT_DATA_LEN, 10_000)
+            Measured::verify_attestation(MAX_CLIENT_DATA_LEN, 10_000)
         );
     }
 
@@ -292,16 +295,96 @@ mod verification_weight {
     fn verify_user_maps_onto_verify_credential() {
         assert_eq!(
             <Weights as AuthenticatorWeightInfo>::verify_user(300, 500),
-            Weights::verify_credential(300, 500)
+            Measured::verify_credential(300, 500)
         );
         assert_eq!(
             <Weights as AuthenticatorWeightInfo>::verify_user(0, 0),
-            Weights::verify_credential(MIN_CLIENT_DATA_LEN, MIN_ASSERTION_AUTHENTICATOR_DATA_LEN)
+            Measured::verify_credential(MIN_CLIENT_DATA_LEN, MIN_ASSERTION_AUTHENTICATOR_DATA_LEN)
         );
         assert_eq!(
             <Weights as AuthenticatorWeightInfo>::verify_user(10_000, 10_000),
-            Weights::verify_credential(MAX_CLIENT_DATA_LEN, 10_000)
+            Measured::verify_credential(MAX_CLIENT_DATA_LEN, 10_000)
         );
+    }
+
+    #[test]
+    fn unit_weights_are_the_measured_ones() {
+        for (c, a) in [
+            (MIN_CLIENT_DATA_LEN, 37),
+            (300, 500),
+            (MAX_CLIENT_DATA_LEN, 10_000),
+        ] {
+            assert_eq!(
+                <() as crate::WeightInfo>::verify_attestation(c, a),
+                Measured::verify_attestation(c, a)
+            );
+            assert_eq!(
+                <() as crate::WeightInfo>::verify_credential(c, a),
+                Measured::verify_credential(c, a)
+            );
+        }
+    }
+
+    /// A runtime's own run of the benchmarks, with made-up numbers far from the measured ones.
+    struct OwnWeights;
+    impl crate::WeightInfo for OwnWeights {
+        fn verify_attestation(c: u32, a: u32) -> Weight {
+            Weight::from_parts(1_000_000 * u64::from(c) + u64::from(a), 11)
+        }
+        fn verify_credential(c: u32, a: u32) -> Weight {
+            Weight::from_parts(2_000_000 * u64::from(c) + u64::from(a), 22)
+        }
+    }
+
+    #[test]
+    fn a_runtimes_own_weights_flow_through_the_adapter() {
+        type Own = crate::Weights<OwnWeights>;
+        type OwnAuthn = crate::Authenticator<BlockChallenger, AuthorityId, Own>;
+        type OwnDevice = <OwnAuthn as traits_authn::Authenticator>::Device;
+
+        // The same mapping onto the benchmarks as for the measured weights...
+        for (c, a) in [(0, 0), (300, 500), (10_000, 10_000)] {
+            assert_eq!(
+                <Own as AuthenticatorWeightInfo>::verify_device(c, a),
+                OwnWeights::verify_attestation(
+                    c.clamp(MIN_CLIENT_DATA_LEN, MAX_CLIENT_DATA_LEN),
+                    a.max(MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN)
+                ),
+                "c={c}, a={a}"
+            );
+            assert_eq!(
+                <Own as AuthenticatorWeightInfo>::verify_user(c, a),
+                OwnWeights::verify_credential(
+                    c.clamp(MIN_CLIENT_DATA_LEN, MAX_CLIENT_DATA_LEN),
+                    a.max(MIN_ASSERTION_AUTHENTICATOR_DATA_LEN)
+                ),
+                "c={c}, a={a}"
+            );
+        }
+
+        // ...and it's what an authenticator bound to them charges, instead of the measured ones.
+        let (attestation, assertion) = inputs();
+        let (c, a) = attestation.weight_components();
+        let charged = <OwnAuthn as traits_authn::Authenticator>::verification_weight(&attestation);
+        assert_eq!(
+            charged,
+            OwnWeights::verify_attestation(
+                c.clamp(MIN_CLIENT_DATA_LEN, MAX_CLIENT_DATA_LEN),
+                a.max(MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN)
+            )
+        );
+        assert_ne!(charged, attestation_weight(&attestation));
+
+        let (c, a) = assertion.weight_components();
+        let charged = <OwnDevice as UserAuthenticator>::verification_weight(&assertion);
+        assert_eq!(
+            charged,
+            OwnWeights::verify_credential(
+                c.clamp(MIN_CLIENT_DATA_LEN, MAX_CLIENT_DATA_LEN),
+                a.max(MIN_ASSERTION_AUTHENTICATOR_DATA_LEN)
+            )
+        );
+        assert_ne!(charged, assertion_weight(&assertion));
     }
 
     #[test]
@@ -332,7 +415,7 @@ mod verification_weight {
             attestation.authenticator_data = vec![0; a as usize];
             assert_eq!(
                 attestation_weight(&attestation),
-                Weights::verify_attestation(
+                Measured::verify_attestation(
                     c.max(MIN_CLIENT_DATA_LEN),
                     a.max(MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN),
                 ),
@@ -350,7 +433,7 @@ mod verification_weight {
             assertion.authenticator_data = vec![0; a as usize];
             assert_eq!(
                 assertion_weight(&assertion),
-                Weights::verify_credential(
+                Measured::verify_credential(
                     c.max(MIN_CLIENT_DATA_LEN),
                     a.max(MIN_ASSERTION_AUTHENTICATOR_DATA_LEN),
                 ),
@@ -408,7 +491,7 @@ mod benchmark_helpers {
     use traits_authn::{AuthenticatorBenchmarkHelper, DeviceChallengeResponse};
 
     type Authenticator =
-        crate::Authenticator<BlockChallenger, AuthorityId, crate::WeightInfo<Test>>;
+        crate::Authenticator<BlockChallenger, AuthorityId, crate::DefaultWeights<Test>>;
 
     #[test]
     fn helpers_register_and_authenticate() {

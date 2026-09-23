@@ -28,66 +28,138 @@
 #![allow(unused_imports)]
 #![allow(missing_docs)]
 
-use frame_support::{traits::Get, weights::Weight};
+use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weights for `pass_substrate_keys`, measured by its benchmarks.
+/// Weight functions needed for `pass_substrate_keys`.
 ///
-/// Bind them as the authenticator's `fc_traits_authn::AuthenticatorWeightInfo` (the crate maps
-/// `verify_device` and `verify_user` onto these benchmarks), e.g.
-/// `Authenticator<Challenger, Authority, WeightInfo<Runtime>>`.
-pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo<T> {
-	pub fn verify_attestation_sr25519() -> Weight {
+/// This crate's `Weights<W>` turns an implementation into the authenticator's
+/// `fc_traits_authn::AuthenticatorWeightInfo`: bind `Weights<SubstrateWeight<Runtime>>` for the
+/// weights measured here, or `Weights<W>` for a runtime's own run of these benchmarks.
+pub trait WeightInfo {
+	fn verify_attestation_sr25519() -> Weight;
+	fn verify_attestation_ed25519() -> Weight;
+	fn verify_attestation_ecdsa() -> Weight;
+	fn verify_attestation_eth() -> Weight;
+	fn verify_credential_sr25519() -> Weight;
+	fn verify_credential_ed25519() -> Weight;
+	fn verify_credential_ecdsa() -> Weight;
+	fn verify_credential_eth() -> Weight;
+}
+
+/// Weights for `pass_substrate_keys`, measured by its benchmarks.
+pub struct SubstrateWeight<T>(PhantomData<T>);
+impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+	fn verify_attestation_sr25519() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 35_918_000 picoseconds.
 		Weight::from_parts(36_538_000, 0)
 	}
-	pub fn verify_attestation_ed25519() -> Weight {
+	fn verify_attestation_ed25519() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 35_249_000 picoseconds.
 		Weight::from_parts(35_859_000, 0)
 	}
-	pub fn verify_attestation_ecdsa() -> Weight {
+	fn verify_attestation_ecdsa() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 37_960_000 picoseconds.
 		Weight::from_parts(38_820_000, 0)
 	}
-	pub fn verify_attestation_eth() -> Weight {
+	fn verify_attestation_eth() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 38_610_000 picoseconds.
 		Weight::from_parts(39_479_000, 0)
 	}
-	pub fn verify_credential_sr25519() -> Weight {
+	fn verify_credential_sr25519() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 35_720_000 picoseconds.
 		Weight::from_parts(36_300_000, 0)
 	}
-	pub fn verify_credential_ed25519() -> Weight {
+	fn verify_credential_ed25519() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 35_360_000 picoseconds.
 		Weight::from_parts(35_930_000, 0)
 	}
-	pub fn verify_credential_ecdsa() -> Weight {
+	fn verify_credential_ecdsa() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
 		// Minimum execution time: 37_970_000 picoseconds.
 		Weight::from_parts(38_640_000, 0)
 	}
-	pub fn verify_credential_eth() -> Weight {
+	fn verify_credential_eth() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 38_621_000 picoseconds.
+		Weight::from_parts(39_350_000, 0)
+	}
+}
+
+// For backwards compatibility and tests.
+impl WeightInfo for () {
+	fn verify_attestation_sr25519() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 35_918_000 picoseconds.
+		Weight::from_parts(36_538_000, 0)
+	}
+	fn verify_attestation_ed25519() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 35_249_000 picoseconds.
+		Weight::from_parts(35_859_000, 0)
+	}
+	fn verify_attestation_ecdsa() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 37_960_000 picoseconds.
+		Weight::from_parts(38_820_000, 0)
+	}
+	fn verify_attestation_eth() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 38_610_000 picoseconds.
+		Weight::from_parts(39_479_000, 0)
+	}
+	fn verify_credential_sr25519() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 35_720_000 picoseconds.
+		Weight::from_parts(36_300_000, 0)
+	}
+	fn verify_credential_ed25519() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 35_360_000 picoseconds.
+		Weight::from_parts(35_930_000, 0)
+	}
+	fn verify_credential_ecdsa() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 37_970_000 picoseconds.
+		Weight::from_parts(38_640_000, 0)
+	}
+	fn verify_credential_eth() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`

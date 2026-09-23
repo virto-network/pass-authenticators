@@ -33,7 +33,7 @@ impl<Cx: Parameter + 'static> DeviceChallengeResponse<Cx> for KeyRegistration<Cx
 
     /// A registration is a fixed-size message and signature: it has no client data or
     /// authenticator data, so both components are zero. What verifying it costs depends only on
-    /// the key type, which [`crate::WeightInfo`] covers by charging the costliest one.
+    /// the key type, which [`crate::Weights`] covers by charging the costliest one.
     fn weight_components(&self) -> (u32, u32) {
         (0, 0)
     }

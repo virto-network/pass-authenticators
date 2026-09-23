@@ -28,19 +28,25 @@
 #![allow(unused_imports)]
 #![allow(missing_docs)]
 
-use frame_support::{traits::Get, weights::Weight};
+use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weights for `pass_webauthn`, measured by its benchmarks.
+/// Weight functions needed for `pass_webauthn`.
 ///
-/// Bind them as the authenticator's `fc_traits_authn::AuthenticatorWeightInfo` (the crate maps
-/// `verify_device` and `verify_user` onto these benchmarks), e.g.
-/// `Authenticator<Challenger, Authority, WeightInfo<Runtime>>`.
-pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo<T> {
+/// This crate's `Weights<W>` turns an implementation into the authenticator's
+/// `fc_traits_authn::AuthenticatorWeightInfo`: bind `Weights<SubstrateWeight<Runtime>>` for the
+/// weights measured here, or `Weights<W>` for a runtime's own run of these benchmarks.
+pub trait WeightInfo {
+	fn verify_attestation(c: u32, a: u32, ) -> Weight;
+	fn verify_credential(c: u32, a: u32, ) -> Weight;
+}
+
+/// Weights for `pass_webauthn`, measured by its benchmarks.
+pub struct SubstrateWeight<T>(PhantomData<T>);
+impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	/// The range of component `c` is `[138, 1024]`.
 	/// The range of component `a` is `[168, 2048]`.
-	pub fn verify_attestation(_c: u32, a: u32, ) -> Weight {
+	fn verify_attestation(_c: u32, a: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
@@ -51,7 +57,35 @@ impl<T: frame_system::Config> WeightInfo<T> {
 	}
 	/// The range of component `c` is `[138, 1024]`.
 	/// The range of component `a` is `[37, 2048]`.
-	pub fn verify_credential(c: u32, a: u32, ) -> Weight {
+	fn verify_credential(c: u32, a: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 1_510_379_000 picoseconds.
+		Weight::from_parts(1_509_963_832, 0)
+			// Standard Error: 975
+			.saturating_add(Weight::from_parts(28_381, 0).saturating_mul(c.into()))
+			// Standard Error: 430
+			.saturating_add(Weight::from_parts(189_058, 0).saturating_mul(a.into()))
+	}
+}
+
+// For backwards compatibility and tests.
+impl WeightInfo for () {
+	/// The range of component `c` is `[138, 1024]`.
+	/// The range of component `a` is `[168, 2048]`.
+	fn verify_attestation(_c: u32, a: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `0`
+		//  Estimated: `0`
+		// Minimum execution time: 25_370_000 picoseconds.
+		Weight::from_parts(26_600_000, 0)
+			// Standard Error: 166
+			.saturating_add(Weight::from_parts(215_086, 0).saturating_mul(a.into()))
+	}
+	/// The range of component `c` is `[138, 1024]`.
+	/// The range of component `a` is `[37, 2048]`.
+	fn verify_credential(c: u32, a: u32, ) -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
