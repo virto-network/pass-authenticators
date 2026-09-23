@@ -31,6 +31,10 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 extern crate alloc;
 
+// `#[frame_support::runtime]` expands to code that expects `Vec` in scope.
+#[allow(unused_imports)]
+use alloc::vec::Vec;
+
 mod apis;
 pub mod genesis_config_presets;
 
