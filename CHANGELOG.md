@@ -16,6 +16,14 @@ pairs with frame-contrib `3.x`.
 
 ## [Unreleased]
 
+## [1.1.0](https://github.com/virto-network/pass-authenticators/releases/tag/v1.1.0)
+
+The first release with **measured verification weights**. Until now every authenticator reported
+zero, so `fc-pallet-pass` charged nothing for checking a signature. Weights come from the `/cmd`
+bot on dedicated hardware (Hetzner CCX43, AMD EPYC-Milan): about 36–39 µs for a Substrate key,
+and about 1.5 ms plus a per-byte cost for a WebAuthn credential, whose P-256 signature is checked in
+wasm.
+
 Requires frame-contrib `2.3`, whose `AuthenticatorWeightInfo` lets the runtime bind what
 verification costs. **Device, registration and credential encodings are unchanged.**
 

@@ -1409,8 +1409,9 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 
 [[package]]
 name = "fc-pallet-pass"
-version = "2.2.0"
-source = "git+https://github.com/virto-network/frame-contrib?branch=feat%2Fauthn-weight-components-v2#75d53ea1bf95a2cfe151e5e55df44f52732d6348"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ad7afacf262d505d0fb2aa256fbf48106e130cf8143af692df81f95b91dcec1"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -1426,8 +1427,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-authn"
-version = "2.2.0"
-source = "git+https://github.com/virto-network/frame-contrib?branch=feat%2Fauthn-weight-components-v2#75d53ea1bf95a2cfe151e5e55df44f52732d6348"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8d7b2f52a653fbd7f50ba398e2d2ba3cf5404c4a856d47f56f8456c861f6ed3"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -1438,8 +1440,9 @@ dependencies = [
 
 [[package]]
 name = "fc-traits-authn-proc"
-version = "2.2.0"
-source = "git+https://github.com/virto-network/frame-contrib?branch=feat%2Fauthn-weight-components-v2#75d53ea1bf95a2cfe151e5e55df44f52732d6348"
+version = "2.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cee75842a7508fb2cca43498e002d11595cbe0ddc7a3c823f68a0fd869b3242c"
 dependencies = [
  "proc-macro-crate",
  "quote",
@@ -3053,7 +3056,7 @@ dependencies = [
 
 [[package]]
 name = "pass-authenticators-bench-runtime"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "frame-benchmarking",
  "frame-executive",
@@ -3076,7 +3079,7 @@ dependencies = [
 
 [[package]]
 name = "pass-authenticators-substrate-keys"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "ed25519-zebra",
  "fc-pallet-pass",
@@ -3098,7 +3101,7 @@ dependencies = [
 
 [[package]]
 name = "pass-authenticators-webauthn"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "bitflags 2.11.0",
  "byteorder",
@@ -3129,7 +3132,7 @@ dependencies = [
 
 [[package]]
 name = "pass-authenticators-webauthn-verifier"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "coset",
  "log",
@@ -4938,7 +4941,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.3.4",
+ "getrandom 0.4.3",
  "once_cell",
  "rustix",
  "windows-sys 0.61.2",
