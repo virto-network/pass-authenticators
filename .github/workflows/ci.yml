@@ -167,12 +167,13 @@ jobs:
               --template .maintain/frame-weight-template.hbs --output "$RUNNER_TEMP/$pallet.rs"
           done
 
-      # A `/cmd bench` run overwrites `weights.rs` with what the template generates, which the
-      # crates' `AuthenticatorWeightInfo` impls call: it must keep the same shape. (Unused
+      # A `/cmd bench` run overwrites `weights.rs` with what the template generates: the
+      # `WeightInfo` trait, which the crates' `Weights<W>` adapters call and runtimes implement,
+      # and its `SubstrateWeight<T>` and `()` impls. It must keep the same shape. (Unused
       # components come out `_`-prefixed, which doesn't change the signature.)
       - name: Check the generated weights match the committed ones' shape
         run: |
-          shape() { grep -E '^\s*pub (struct|fn) ' "$1" | sed -E 's/([( ])_([a-z]+:)/\1\2/g'; }
+          shape() { grep -E '^\s*(pub (struct|trait) |impl|fn )' "$1" | sed -E 's/([( ])_([a-z]+:)/\1\2/g'; }
           for pair in "pass_webauthn webauthn" "pass_substrate_keys substrate-keys"; do
             set -- $pair
             diff <(shape "authenticators/$2/src/weights.rs") <(shape "$RUNNER_TEMP/$1.rs")

@@ -9,8 +9,9 @@ type CxOf<Ch> = <Ch as Challenger>::Context;
 /// The WebAuthn authenticator, for the challenger `Ch` and the authority `A`.
 ///
 /// `W` is what verifying attestations and assertions costs, which `fc-pallet-pass` charges on
-/// top of its own weights. Bind [`WeightInfo<Runtime>`](crate::WeightInfo) (this crate's
-/// benchmarked weights), or a runtime's own run of this crate's benchmarks.
+/// top of its own weights. Bind [`DefaultWeights<Runtime>`](crate::DefaultWeights) (this crate's
+/// benchmarked weights), or [`Weights<W>`](crate::Weights) for a runtime's own run of this crate's
+/// benchmarks.
 pub type Authenticator<Ch, A, W> = Auth<Device<Ch, A, W>, Attestation<CxOf<Ch>>, W>;
 /// A WebAuthn credential, registered as a device. `W` is as in [`Authenticator`].
 pub type Device<Ch, A, W> = Dev<CredentialRecord, A, Ch, Assertion<CxOf<Ch>>, W>;
