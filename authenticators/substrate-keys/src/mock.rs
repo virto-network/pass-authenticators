@@ -96,7 +96,7 @@ impl pallet_pass::Config for Test {
     type AddressGenerator = ();
     type Balances = Balances;
     type Authenticator =
-        crate::Authenticator<BlockChallenger, AuthorityId, crate::WeightInfo<Test>>;
+        crate::Authenticator<BlockChallenger, AuthorityId, crate::DefaultWeights<Test>>;
     type Scheduler = Scheduler;
     type BlockNumberProvider = System;
     type RegistrarConsideration = ();

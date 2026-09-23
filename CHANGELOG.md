@@ -16,6 +16,44 @@ pairs with frame-contrib `3.x`.
 
 ## [Unreleased]
 
+## [1.2.0](https://github.com/virto-network/pass-authenticators/releases/tag/v1.2.0)
+
+Runtimes can now bind **their own verification weights**, from their own run of these crates'
+benchmarks, the way they do for any FRAME pallet. The weights shipped with the crates are unchanged.
+
+This is a runtime-configuration change, not a client-visible one: **device, registration and
+credential encodings, and metadata, are unchanged.** Runtimes need a one-line change to their
+authenticator types when they upgrade.
+
+### Changed
+
+- Each crate's `WeightInfo` is a trait again, `pub trait WeightInfo`, with one function per
+  benchmark, like a FRAME pallet's: `verify_attestation(c, a)` and `verify_credential(c, a)` for
+  WebAuthn, `verify_{attestation,credential}_{sr25519,ed25519,ecdsa,eth}()` for Substrate keys. The
+  weights measured here moved to `SubstrateWeight<T: frame_system::Config>`, which implements it,
+  and so does `()`, with the same numbers (as in FRAME pallets). A runtime's own `weights.rs` for
+  these benchmarks (`impl<T: frame_system::Config> pass_webauthn::WeightInfo for WeightInfo<T>`)
+  now compiles against it.
+- `.maintain/frame-weight-template.hbs` generates that shape (the trait, `SubstrateWeight<T>` and
+  `()`), like the Polkadot SDK's pallet template, and the committed `weights.rs` files were
+  converted to it without changing any number.
+
+### Added
+
+- `Weights<W>`, in both crates: implements `fc_traits_authn::AuthenticatorWeightInfo` for any
+  `W: WeightInfo`, with the same mapping of `verify_device`/`verify_user` onto the benchmarks as
+  `1.1.0` (WebAuthn clamps `c` and `a` to the benchmarked range; Substrate keys charge the
+  costliest key type). `DefaultWeights<T>` is `Weights<SubstrateWeight<T>>`.
+
+### Migrating from 1.1.0
+
+The authenticator's last type parameter changes from `WeightInfo<Runtime>` to:
+
+- `pass_webauthn::DefaultWeights<Runtime>` / `pass_substrate_keys::DefaultWeights<Runtime>`, to
+  keep the weights measured by these crates (what `1.1.0` charged); or
+- `pass_webauthn::Weights<crate::weights::pass_webauthn::WeightInfo<Runtime>>` (and likewise for
+  `pass_substrate_keys`), to charge the runtime's own run of the benchmarks.
+
 ## [1.1.0](https://github.com/virto-network/pass-authenticators/releases/tag/v1.1.0)
 
 The first release with **measured verification weights**. Until now every authenticator reported

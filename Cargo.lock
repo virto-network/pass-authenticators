@@ -3056,7 +3056,7 @@ dependencies = [
 
 [[package]]
 name = "pass-authenticators-bench-runtime"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "frame-benchmarking",
  "frame-executive",
@@ -3079,7 +3079,7 @@ dependencies = [
 
 [[package]]
 name = "pass-authenticators-substrate-keys"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "ed25519-zebra",
  "fc-pallet-pass",
@@ -3101,7 +3101,7 @@ dependencies = [
 
 [[package]]
 name = "pass-authenticators-webauthn"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "bitflags 2.11.0",
  "byteorder",
@@ -3132,7 +3132,7 @@ dependencies = [
 
 [[package]]
 name = "pass-authenticators-webauthn-verifier"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "coset",
  "log",

@@ -23,8 +23,13 @@ mod tests;
 pub mod weights;
 
 #[cfg(any(feature = "runtime", test))]
-pub use weights::WeightInfo;
+pub use weights::{SubstrateWeight, WeightInfo};
 
+/// This crate's [`WeightInfo`] as the authenticator's [`AuthenticatorWeightInfo`], which the
+/// [`Authenticator`] and [`Device`] aliases take: bind [`DefaultWeights<Runtime>`] for the
+/// weights measured by this crate, or `Weights<W>` for any other [`WeightInfo`] `W`, such as
+/// the output of a runtime's own run of this crate's benchmarks.
+///
 /// Verifying an attestation is what the `verify_attestation` benchmark measures, and verifying an
 /// assertion (including its P-256 signature) what `verify_credential` measures, both for client
 /// data `c` bytes long and authenticator data `a` bytes long.
@@ -32,17 +37,26 @@ pub use weights::WeightInfo;
 /// `c` is capped at [`MAX_CLIENT_DATA_LEN`], the longest client data can be, and neither
 /// component goes below the shortest input the benchmarks cover (the fit extrapolates, rather
 /// than measures, below it).
+///
+/// [`AuthenticatorWeightInfo`]: traits_authn::AuthenticatorWeightInfo
 #[cfg(any(feature = "runtime", test))]
-impl<T: frame_system::Config> traits_authn::AuthenticatorWeightInfo for WeightInfo<T> {
+pub struct Weights<W>(core::marker::PhantomData<W>);
+
+/// The weights measured by this crate's benchmarks (see [`Weights`]).
+#[cfg(any(feature = "runtime", test))]
+pub type DefaultWeights<T> = Weights<SubstrateWeight<T>>;
+
+#[cfg(any(feature = "runtime", test))]
+impl<W: WeightInfo> traits_authn::AuthenticatorWeightInfo for Weights<W> {
     fn verify_device(c: u32, a: u32) -> frame_support::weights::Weight {
-        Self::verify_attestation(
+        W::verify_attestation(
             c.clamp(MIN_CLIENT_DATA_LEN, MAX_CLIENT_DATA_LEN),
             a.max(MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN),
         )
     }
 
     fn verify_user(c: u32, a: u32) -> frame_support::weights::Weight {
-        Self::verify_credential(
+        W::verify_credential(
             c.clamp(MIN_CLIENT_DATA_LEN, MAX_CLIENT_DATA_LEN),
             a.max(MIN_ASSERTION_AUTHENTICATOR_DATA_LEN),
         )

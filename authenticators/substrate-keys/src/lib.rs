@@ -13,24 +13,36 @@ mod mock;
 mod tests;
 pub mod weights;
 
-pub use weights::WeightInfo;
+pub use weights::{SubstrateWeight, WeightInfo};
 
+/// This crate's [`WeightInfo`] as the authenticator's [`AuthenticatorWeightInfo`], which the
+/// `Authenticator` and `Device` aliases take: bind [`DefaultWeights<Runtime>`] for the weights
+/// measured by this crate, or `Weights<W>` for any other [`WeightInfo`] `W`, such as the output
+/// of a runtime's own run of this crate's benchmarks.
+///
 /// Verification doesn't depend on the lengths `c` and `a` (a registration or a signature is a
 /// fixed-size message and a signature), but on the key type, which isn't known from them. So
 /// both report the costliest key type: an upper bound for any registration or signature.
-impl<T: frame_system::Config> traits_authn::AuthenticatorWeightInfo for WeightInfo<T> {
+///
+/// [`AuthenticatorWeightInfo`]: traits_authn::AuthenticatorWeightInfo
+pub struct Weights<W>(core::marker::PhantomData<W>);
+
+/// The weights measured by this crate's benchmarks (see [`Weights`]).
+pub type DefaultWeights<T> = Weights<SubstrateWeight<T>>;
+
+impl<W: WeightInfo> traits_authn::AuthenticatorWeightInfo for Weights<W> {
     fn verify_device(_c: u32, _a: u32) -> frame_support::weights::Weight {
-        Self::verify_attestation_sr25519()
-            .max(Self::verify_attestation_ed25519())
-            .max(Self::verify_attestation_ecdsa())
-            .max(Self::verify_attestation_eth())
+        W::verify_attestation_sr25519()
+            .max(W::verify_attestation_ed25519())
+            .max(W::verify_attestation_ecdsa())
+            .max(W::verify_attestation_eth())
     }
 
     fn verify_user(_c: u32, _a: u32) -> frame_support::weights::Weight {
-        Self::verify_credential_sr25519()
-            .max(Self::verify_credential_ed25519())
-            .max(Self::verify_credential_ecdsa())
-            .max(Self::verify_credential_eth())
+        W::verify_credential_sr25519()
+            .max(W::verify_credential_ed25519())
+            .max(W::verify_credential_ecdsa())
+            .max(W::verify_credential_eth())
     }
 }
 
@@ -47,8 +59,9 @@ mod runtime {
     /// The Substrate keys authenticator, for the challenger `Ch` and the authority `AuthId`.
     ///
     /// `W` is what verifying registrations and signatures costs, which `fc-pallet-pass` charges
-    /// on top of its own weights. Bind [`WeightInfo<Runtime>`](crate::WeightInfo) (this crate's
-    /// benchmarked weights), or a runtime's own run of this crate's benchmarks.
+    /// on top of its own weights. Bind [`DefaultWeights<Runtime>`](crate::DefaultWeights) (this
+    /// crate's benchmarked weights), or [`Weights<W>`](crate::Weights) for a runtime's own run of
+    /// this crate's benchmarks.
     pub type Authenticator<Ch, AuthId, W> =
         Auth<Device<Ch, AuthId, W>, KeyRegistration<CxOf<Ch>>, W>;
     /// A Substrate public key, registered as a device. `W` is as in [`Authenticator`].

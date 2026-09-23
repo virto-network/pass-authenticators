@@ -50,7 +50,7 @@ where
     }
 
     /// The lengths of the client data (`c`) and the authenticator data (`a`) as submitted, which
-    /// is what verifying an assertion grows with (see [`crate::WeightInfo`]).
+    /// is what verifying an assertion grows with (see [`crate::Weights`]).
     fn weight_components(&self) -> (u32, u32) {
         (
             len_component(&self.client_data),
