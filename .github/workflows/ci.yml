@@ -37,6 +37,9 @@ jobs:
   check:
     needs: lint
     runs-on: ubuntu-latest
+    env:
+      # The bench runtime's WASM blob is built by the `bench-runtime` job.
+      SKIP_WASM_BUILD: 1
     steps:
       - name: Setup Ubuntu dependencies
         shell: bash
@@ -93,6 +96,9 @@ jobs:
   test:
     needs: lint
     runs-on: ubuntu-latest
+    env:
+      # The bench runtime's WASM blob is built by the `bench-runtime` job.
+      SKIP_WASM_BUILD: 1
     steps:
       - name: Setup Ubuntu dependencies
         shell: bash
@@ -109,3 +115,65 @@ jobs:
 
       - name: Run tests
         run: cargo test --release --locked --all-features --workspace
+
+  bench-runtime:
+    needs: lint
+    runs-on: ubuntu-latest
+    env:
+      # Recent `rustc`s no longer turn undefined symbols into imports when linking for
+      # `wasm32v1-none`, but a runtime imports its host functions from the host.
+      WASM_BUILD_RUSTFLAGS: "-C link-arg=--allow-undefined"
+    steps:
+      - name: Setup Ubuntu dependencies
+        shell: bash
+        run: sudo apt update && sudo apt install -y protobuf-compiler
+
+      - uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+          components: rust-src
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.7.3
+        with:
+          cache-on-failure: true
+          cache-all-crates: true
+          key: bench-runtime
+
+      - name: Build the bench runtime with benchmarks
+        run: cargo build --release --locked -p pass-authenticators-bench-runtime --features runtime-benchmarks
+
+      - name: Install frame-omni-bencher
+        run: |
+          release="polkadot-$(cat polkadot-sdk-version)"
+          base="https://github.com/paritytech/polkadot-sdk/releases/download/$release"
+          mkdir -p "$RUNNER_TEMP/bin" && cd "$RUNNER_TEMP/bin"
+          curl -fsSL --retry 5 --retry-all-errors -O "$base/frame-omni-bencher" -O "$base/frame-omni-bencher.sha256"
+          sha256sum -c frame-omni-bencher.sha256
+          chmod +x frame-omni-bencher
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+
+      # Catches a broken benchmark, and a weight template that doesn't render.
+      - name: Run every benchmark once
+        run: |
+          runtime=target/release/wbuild/pass-authenticators-bench-runtime/pass_authenticators_bench_runtime.compact.compressed.wasm
+          frame-omni-bencher v1 benchmark pallet --all --steps 2 --repeat 1 --runtime "$runtime"
+          for pallet in pass_webauthn pass_substrate_keys; do
+            frame-omni-bencher v1 benchmark pallet --pallet "$pallet" --extrinsic '*' \
+              --steps 2 --repeat 1 --runtime "$runtime" \
+              --template .maintain/frame-weight-template.hbs --output "$RUNNER_TEMP/$pallet.rs"
+          done
+
+      # A `/cmd bench` run overwrites `weights.rs` with what the template generates, which the
+      # crates' `AuthenticatorWeightInfo` impls call: it must keep the same shape. (Unused
+      # components come out `_`-prefixed, which doesn't change the signature.)
+      - name: Check the generated weights match the committed ones' shape
+        run: |
+          shape() { grep -E '^\s*pub (struct|fn) ' "$1" | sed -E 's/([( ])_([a-z]+:)/\1\2/g'; }
+          for pair in "pass_webauthn webauthn" "pass_substrate_keys substrate-keys"; do
+            set -- $pair
+            diff <(shape "authenticators/$2/src/weights.rs") <(shape "$RUNNER_TEMP/$1.rs")
+          done

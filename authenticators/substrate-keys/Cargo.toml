@@ -13,6 +13,7 @@ version.workspace = true
 [dependencies]
 codec.workspace = true
 frame-support.workspace = true
+frame-system.workspace = true
 log.workspace = true
 scale-info.workspace = true
 sp-core.workspace = true
@@ -45,6 +46,7 @@ runtime-benchmarks = [
   "dep:schnorrkel",
   "frame/runtime-benchmarks",
   "frame-support/runtime-benchmarks",
+  "frame-system/runtime-benchmarks",
   "pallet-balances/runtime-benchmarks",
   "pallet-pass/runtime-benchmarks",
   "pallet-scheduler/runtime-benchmarks",
@@ -56,6 +58,7 @@ std = [
   "ed25519-zebra?/std",
   "frame/std",
   "frame-support/std",
+  "frame-system/std",
   "k256?/std",
   "log/std",
   "pallet-balances/std",
@@ -74,5 +77,6 @@ try-runtime = [
   "pallet-scheduler/try-runtime",
   "frame/try-runtime",
   "frame-support/try-runtime",
+  "frame-system/try-runtime",
   "sp-runtime/try-runtime",
 ]

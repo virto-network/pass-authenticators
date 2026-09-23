@@ -276,7 +276,8 @@ pub mod helpers {
 
 /// Registers a freshly generated P-256 key, with the shortest client data and authenticator
 /// data: `fc-pallet-pass` measures its own overhead with these inputs, and charges verifying
-/// the actual attestation separately, through [`DeviceChallengeResponse::verification_weight`].
+/// the actual attestation separately, through
+/// [`traits_authn::Authenticator::verification_weight`].
 impl<Cx> DeviceAttestationBenchmarkHelper<Cx> for Attestation<Cx>
 where
     Cx: Parameter + Copy + 'static,
@@ -332,8 +333,9 @@ parameter_types! {
     pub const BenchAuthority: AuthorityId = *b"pass-authenticators/bench-authn\0";
 }
 
-type BenchAuthenticator = Authenticator<BenchChallenger, BenchAuthority>;
-type BenchDevice = Device<BenchChallenger, BenchAuthority>;
+// What verification costs is what these benchmarks measure, so it's irrelevant here.
+type BenchAuthenticator = Authenticator<BenchChallenger, BenchAuthority, ()>;
+type BenchDevice = Device<BenchChallenger, BenchAuthority, ()>;
 
 const CONTEXT: u32 = 1;
 const XTC: [u8; 32] = [0x42; 32];

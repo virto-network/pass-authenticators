@@ -1,9 +1,8 @@
 use super::*;
 
-use crate::weights::WeightInfo;
 use sp_runtime::traits::Verify;
 
-impl<Ch: Challenger, AuthId> From<KeyRegistration<CxOf<Ch>>> for Device<Ch, AuthId> {
+impl<Ch: Challenger, AuthId, W> From<KeyRegistration<CxOf<Ch>>> for Device<Ch, AuthId, W> {
     fn from(substrate_signature: KeyRegistration<CxOf<Ch>>) -> Self {
         Self::new(substrate_signature.public)
     }
@@ -32,13 +31,10 @@ impl<Cx: Parameter + 'static> DeviceChallengeResponse<Cx> for KeyRegistration<Cx
         self.public.as_ref()
     }
 
-    /// The benchmarked cost of verifying a registration signed with this key type.
-    fn verification_weight(&self) -> Weight {
-        match self.signature {
-            MultiSignature::Sr25519(_) => <() as WeightInfo>::verify_attestation_sr25519(),
-            MultiSignature::Ed25519(_) => <() as WeightInfo>::verify_attestation_ed25519(),
-            MultiSignature::Ecdsa(_) => <() as WeightInfo>::verify_attestation_ecdsa(),
-            MultiSignature::Eth(_) => <() as WeightInfo>::verify_attestation_eth(),
-        }
+    /// A registration is a fixed-size message and signature: it has no client data or
+    /// authenticator data, so both components are zero. What verifying it costs depends only on
+    /// the key type, which [`crate::WeightInfo`] covers by charging the costliest one.
+    fn weight_components(&self) -> (u32, u32) {
+        (0, 0)
     }
 }
