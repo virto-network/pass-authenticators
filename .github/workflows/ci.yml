@@ -151,7 +151,7 @@ jobs:
           release="polkadot-$(cat polkadot-sdk-version)"
           base="https://github.com/paritytech/polkadot-sdk/releases/download/$release"
           mkdir -p "$RUNNER_TEMP/bin" && cd "$RUNNER_TEMP/bin"
-          curl -fsSL --retry 5 -O "$base/frame-omni-bencher" -O "$base/frame-omni-bencher.sha256"
+          curl -fsSL --retry 5 --retry-all-errors -O "$base/frame-omni-bencher" -O "$base/frame-omni-bencher.sha256"
           sha256sum -c frame-omni-bencher.sha256
           chmod +x frame-omni-bencher
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"

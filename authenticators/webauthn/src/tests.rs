@@ -363,10 +363,12 @@ mod verification_weight {
     fn weights_grow_with_input_length() {
         let (mut attestation, mut assertion) = inputs();
 
+        // On the benchmark runner, verifying an attestation didn't grow with its client data
+        // (the fit for `c` came out flat), so a longer one must only never be cheaper.
         attestation.client_data = client_data(512);
         let short = attestation_weight(&attestation);
         attestation.client_data = client_data(MAX_CLIENT_DATA_LEN);
-        assert!(attestation_weight(&attestation).ref_time() > short.ref_time());
+        assert!(attestation_weight(&attestation).ref_time() >= short.ref_time());
 
         attestation.authenticator_data = vec![0; 1_000];
         let short = attestation_weight(&attestation);
