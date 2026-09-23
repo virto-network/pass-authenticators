@@ -48,4 +48,13 @@ where
     fn user_id(&self) -> HashedUserId {
         self.meta.user_id
     }
+
+    /// The lengths of the client data (`c`) and the authenticator data (`a`) as submitted, which
+    /// is what verifying an assertion grows with (see [`crate::WeightInfo`]).
+    fn weight_components(&self) -> (u32, u32) {
+        (
+            len_component(&self.client_data),
+            len_component(&self.authenticator_data),
+        )
+    }
 }

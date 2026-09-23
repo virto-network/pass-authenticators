@@ -82,4 +82,13 @@ where
     fn device_id(&self) -> &DeviceId {
         &self.meta.device_id
     }
+
+    /// The lengths of the client data (`c`) and the authenticator data (`a`) as submitted, which
+    /// is what verifying an attestation grows with (see [`crate::WeightInfo`]).
+    fn weight_components(&self) -> (u32, u32) {
+        (
+            len_component(&self.client_data),
+            len_component(&self.authenticator_data),
+        )
+    }
 }

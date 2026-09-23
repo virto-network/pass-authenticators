@@ -226,7 +226,9 @@ mod verification_weight {
         MAX_CLIENT_DATA_LEN, MIN_ASSERTION_AUTHENTICATOR_DATA_LEN,
         MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN, MIN_CLIENT_DATA_LEN,
     };
-    use traits_authn::{AuthenticatorWeightInfo, UserAuthenticator};
+    use traits_authn::{
+        AuthenticatorWeightInfo, DeviceChallengeResponse, UserAuthenticator, UserChallengeResponse,
+    };
 
     /// The weights the mock runtime binds.
     type Weights = crate::WeightInfo<Test>;
@@ -303,56 +305,55 @@ mod verification_weight {
     }
 
     #[test]
-    fn attestation_weight_comes_from_the_bound_weights() {
-        let (attestation, _) = inputs();
-        let size = attestation.encoded_size() as u32;
-        let weight = attestation_weight(&attestation);
-        assert!(weight.ref_time() > 0);
+    fn weight_components_are_the_submitted_lengths() {
+        let (attestation, assertion) = inputs();
         assert_eq!(
-            weight,
-            <Weights as AuthenticatorWeightInfo>::verify_device(size, size)
+            attestation.weight_components(),
+            (
+                attestation.client_data.len() as u32,
+                attestation.authenticator_data.len() as u32
+            )
+        );
+        assert_eq!(
+            assertion.weight_components(),
+            (
+                assertion.client_data.len() as u32,
+                assertion.authenticator_data.len() as u32
+            )
         );
     }
 
     #[test]
-    fn credential_weight_comes_from_the_bound_weights() {
-        let (_, assertion) = inputs();
-        let size = assertion.encoded_size() as u32;
-        let weight = assertion_weight(&assertion);
-        assert!(weight.ref_time() > 0);
-        assert_eq!(
-            weight,
-            <Weights as AuthenticatorWeightInfo>::verify_user(size, size)
-        );
-    }
-
-    #[test]
-    fn attestation_weight_covers_the_submitted_lengths() {
+    fn attestation_weight_is_charged_on_the_submitted_lengths() {
         let (mut attestation, _) = inputs();
+        assert!(attestation_weight(&attestation).ref_time() > 0);
         for (c, a) in [(1, 0), (512, 1_000), (MAX_CLIENT_DATA_LEN, 10_000)] {
             attestation.client_data = client_data(c);
             attestation.authenticator_data = vec![0; a as usize];
-            assert!(
-                attestation_weight(&attestation).all_gte(Weights::verify_attestation(
+            assert_eq!(
+                attestation_weight(&attestation),
+                Weights::verify_attestation(
                     c.max(MIN_CLIENT_DATA_LEN),
                     a.max(MIN_ATTESTATION_AUTHENTICATOR_DATA_LEN),
-                )),
+                ),
                 "c={c}, a={a}"
             );
         }
     }
 
     #[test]
-    fn credential_weight_covers_the_submitted_lengths() {
+    fn credential_weight_is_charged_on_the_submitted_lengths() {
         let (_, mut assertion) = inputs();
+        assert!(assertion_weight(&assertion).ref_time() > 0);
         for (c, a) in [(1, 0), (512, 1_000), (MAX_CLIENT_DATA_LEN, 10_000)] {
             assertion.client_data = client_data(c);
             assertion.authenticator_data = vec![0; a as usize];
-            assert!(
-                assertion_weight(&assertion).all_gte(Weights::verify_credential(
+            assert_eq!(
+                assertion_weight(&assertion),
+                Weights::verify_credential(
                     c.max(MIN_CLIENT_DATA_LEN),
                     a.max(MIN_ASSERTION_AUTHENTICATOR_DATA_LEN),
-                )),
+                ),
                 "c={c}, a={a}"
             );
         }
@@ -404,7 +405,8 @@ mod benchmark_helpers {
     use frame::traits::TxBaseImplication;
     use traits_authn::{AuthenticatorBenchmarkHelper, DeviceChallengeResponse};
 
-    type Authenticator = crate::Authenticator<BlockChallenger, AuthorityId, crate::WeightInfo<Test>>;
+    type Authenticator =
+        crate::Authenticator<BlockChallenger, AuthorityId, crate::WeightInfo<Test>>;
 
     #[test]
     fn helpers_register_and_authenticate() {

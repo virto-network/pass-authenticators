@@ -162,9 +162,15 @@ mod authentication {
 
 mod verification_weight {
     use super::*;
-    use crate::WeightInfo;
     use frame::deps::sp_core::{ecdsa, ed25519};
-    use traits_authn::{DeviceChallengeResponse, UserChallengeResponse};
+    use traits_authn::{
+        AuthenticatorWeightInfo, DeviceChallengeResponse, UserAuthenticator, UserChallengeResponse,
+    };
+
+    /// The weights the mock runtime binds.
+    type Weights = crate::WeightInfo<Test>;
+    type Authn = <Test as pallet_pass::Config>::Authenticator;
+    type Device = <Authn as traits_authn::Authenticator>::Device;
 
     fn signatures() -> [(MultiSignature, &'static str); 4] {
         let message = SignedMessage {
@@ -189,42 +195,62 @@ mod verification_weight {
     }
 
     #[test]
-    fn attestation_weight_is_non_zero_and_covers_the_benchmark() {
+    fn attestation_weight_covers_every_key_type() {
         let (message, public, _) = new_test_ext().execute_with(|| make_signature(&[]));
-        for ((signature, key_type), benchmarked) in signatures().into_iter().zip([
-            <() as WeightInfo>::verify_attestation_sr25519(),
-            <() as WeightInfo>::verify_attestation_ed25519(),
-            <() as WeightInfo>::verify_attestation_ecdsa(),
-            <() as WeightInfo>::verify_attestation_eth(),
-        ]) {
-            let weight = KeyRegistration {
+        let benchmarked = [
+            Weights::verify_attestation_sr25519(),
+            Weights::verify_attestation_ed25519(),
+            Weights::verify_attestation_ecdsa(),
+            Weights::verify_attestation_eth(),
+        ];
+        for (signature, key_type) in signatures() {
+            let registration = KeyRegistration {
                 public: public.clone(),
                 message: message.clone(),
                 signature,
-            }
-            .verification_weight();
+            };
+            assert_eq!(registration.weight_components(), (0, 0), "{key_type}");
+
+            let weight = <Authn as traits_authn::Authenticator>::verification_weight(&registration);
             assert!(weight.ref_time() > 0, "{key_type}");
-            assert!(weight.all_gte(benchmarked), "{key_type}");
+            assert_eq!(
+                weight,
+                <Weights as AuthenticatorWeightInfo>::verify_device(0, 0),
+                "{key_type}"
+            );
+            for b in benchmarked {
+                assert!(weight.all_gte(b), "{key_type}");
+            }
         }
     }
 
     #[test]
-    fn credential_weight_is_non_zero_and_covers_the_benchmark() {
+    fn credential_weight_covers_every_key_type() {
         let (message, _, _) = new_test_ext().execute_with(|| make_signature(&[]));
-        for ((signature, key_type), benchmarked) in signatures().into_iter().zip([
-            <() as WeightInfo>::verify_credential_sr25519(),
-            <() as WeightInfo>::verify_credential_ed25519(),
-            <() as WeightInfo>::verify_credential_ecdsa(),
-            <() as WeightInfo>::verify_credential_eth(),
-        ]) {
-            let weight = KeySignature {
+        let benchmarked = [
+            Weights::verify_credential_sr25519(),
+            Weights::verify_credential_ed25519(),
+            Weights::verify_credential_ecdsa(),
+            Weights::verify_credential_eth(),
+        ];
+        for (signature, key_type) in signatures() {
+            let credential = KeySignature {
                 user_id: USER,
                 message: message.clone(),
                 signature,
-            }
-            .verification_weight();
+            };
+            assert_eq!(credential.weight_components(), (0, 0), "{key_type}");
+
+            let weight = <Device as UserAuthenticator>::verification_weight(&credential);
             assert!(weight.ref_time() > 0, "{key_type}");
-            assert!(weight.all_gte(benchmarked), "{key_type}");
+            assert_eq!(
+                weight,
+                <Weights as AuthenticatorWeightInfo>::verify_user(0, 0),
+                "{key_type}"
+            );
+            for b in benchmarked {
+                assert!(weight.all_gte(b), "{key_type}");
+            }
         }
     }
 }
@@ -235,7 +261,8 @@ mod benchmark_helpers {
     use super::*;
     use traits_authn::{AuthenticatorBenchmarkHelper, DeviceChallengeResponse};
 
-    type Authenticator = crate::Authenticator<BlockChallenger, AuthorityId, crate::WeightInfo<Test>>;
+    type Authenticator =
+        crate::Authenticator<BlockChallenger, AuthorityId, crate::WeightInfo<Test>>;
 
     #[test]
     fn helpers_register_and_authenticate() {

@@ -31,6 +31,11 @@ pub const MIN_ASSERTION_AUTHENTICATOR_DATA_LEN: u32 = 37;
 /// the length of the extrinsic), so weights extrapolate linearly beyond it.
 pub const MAX_AUTHENTICATOR_DATA_LEN: u32 = 2048;
 
+/// The length of `bytes`, as a weight component (saturating, so it never under-counts).
+pub(crate) fn len_component(bytes: &[u8]) -> u32 {
+    u32::try_from(bytes.len()).unwrap_or(u32::MAX)
+}
+
 pub mod assertion;
 pub mod attestation;
 pub mod credential_record;

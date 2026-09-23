@@ -296,7 +296,10 @@ fn attestation(key_type: KeyType) -> KeyRegistration<u32> {
 
 fn device_and_credential(
     key_type: KeyType,
-) -> (Device<BenchChallenger, BenchAuthority, ()>, KeySignature<u32>) {
+) -> (
+    Device<BenchChallenger, BenchAuthority, ()>,
+    KeySignature<u32>,
+) {
     let attestation = attestation(key_type);
     let device_id = *attestation.device_id();
     let device =
