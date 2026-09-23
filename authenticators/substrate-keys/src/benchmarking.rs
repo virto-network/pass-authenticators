@@ -272,7 +272,8 @@ parameter_types! {
     pub const BenchAuthority: AuthorityId = *b"pass-authenticators/bench-authn\0";
 }
 
-type BenchAuthenticator = Authenticator<BenchChallenger, BenchAuthority>;
+// What verification costs is what these benchmarks measure, so it's irrelevant here.
+type BenchAuthenticator = Authenticator<BenchChallenger, BenchAuthority, ()>;
 
 const CONTEXT: u32 = 1;
 const XTC: [u8; 32] = [0x42; 32];
@@ -295,7 +296,10 @@ fn attestation(key_type: KeyType) -> KeyRegistration<u32> {
 
 fn device_and_credential(
     key_type: KeyType,
-) -> (Device<BenchChallenger, BenchAuthority>, KeySignature<u32>) {
+) -> (
+    Device<BenchChallenger, BenchAuthority, ()>,
+    KeySignature<u32>,
+) {
     let attestation = attestation(key_type);
     let device_id = *attestation.device_id();
     let device =

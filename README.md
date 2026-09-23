@@ -54,10 +54,26 @@ titles and what counts as a breaking change.
 ## Verification weights and benchmarks
 
 `fc-pallet-pass` charges what verifying an attestation (on `register`/`add_device`) or a credential (on every
-extrinsic authenticated with `PassAuthenticate`) costs through `verification_weight`, which each authenticator
-implements from its own benchmarks:
+extrinsic authenticated with `PassAuthenticate`) costs, through the authenticator's `WeightInfo`
+(`fc_traits_authn::AuthenticatorWeightInfo`), which the runtime binds as the authenticator's last type parameter:
 
-| Authenticator | Attestation | Credential |
+```rust
+pub type WebAuthn = pass_webauthn::Authenticator<
+    MyChallenger,
+    AuthorityFromPalletId<PassPalletId>,
+    pass_webauthn::WeightInfo<Runtime>,
+>;
+pub type SubstrateKey = pass_substrate_keys::Authenticator<
+    MyChallenger,
+    AuthorityFromPalletId<PassPalletId>,
+    pass_substrate_keys::WeightInfo<Runtime>,
+>;
+```
+
+Bind each crate's `WeightInfo<Runtime>` (its benchmarked weights), or the output of a run of these benchmarks on
+your own hardware. Binding `()` makes verification free, so don't do that on a live chain.
+
+| Authenticator | Attestation (`verify_device(c, a)`) | Credential (`verify_user(c, a)`) |
 | --- | --- | --- |
 | `pass-authenticators-webauthn` | `verify_attestation(c, a)` | `verify_credential(c, a)` (includes the P-256 signature check) |
 | `pass-authenticators-substrate-keys` | `verify_attestation_{sr25519,ed25519,ecdsa,eth}()` | `verify_credential_{sr25519,ed25519,ecdsa,eth}()` |
@@ -73,12 +89,29 @@ compressed (BIP-137 flags 31-34) or not (27-30). The other authenticators' input
 
 The weights live in each crate's `src/weights.rs`, and are runtime-independent: verifying touches no storage, and
 the benchmarks run with their own challenger. **The committed weights are placeholders**, conservative estimates
-pending a run on reference hardware.
+pending a run on the benchmark runner.
 
 ### Running the benchmarks
 
-Each authenticator has a benchmarking-only pallet, behind its `runtime-benchmarks` feature. To run them, add
-them to a runtime's `define_benchmarks!` (they don't go in `construct_runtime!`):
+Each authenticator has a benchmarking-only pallet, behind its `runtime-benchmarks` feature.
+[`bench-runtime`](bench-runtime) (`pass-authenticators-bench-runtime`, not published) is a minimal runtime that
+runs them. To regenerate the weights with this repository's template:
+
+```sh
+cargo build --release -p pass-authenticators-bench-runtime --features runtime-benchmarks
+for pallet in webauthn substrate-keys; do
+  frame-omni-bencher v1 benchmark pallet \
+    --runtime target/release/wbuild/pass-authenticators-bench-runtime/pass_authenticators_bench_runtime.compact.compressed.wasm \
+    --pallet "pass_${pallet//-/_}" --extrinsic '*' \
+    --steps 50 --repeat 20 \
+    --template .maintain/frame-weight-template.hbs \
+    --output "authenticators/${pallet}/src/weights.rs"
+done
+```
+
+Recent `rustc`s need `WASM_BUILD_RUSTFLAGS="-C link-arg=--allow-undefined"` to link the runtime. CI runs every
+benchmark once on each PR. To run them in your own runtime, add them to its `define_benchmarks!` (they don't go in
+`construct_runtime!`):
 
 ```rust
 frame_benchmarking::define_benchmarks!(

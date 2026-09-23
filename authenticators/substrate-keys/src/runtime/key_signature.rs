@@ -1,5 +1,4 @@
 use super::*;
-use crate::weights::WeightInfo;
 use sp_runtime::traits::Verify;
 use traits_authn::UserChallengeResponse;
 
@@ -22,14 +21,11 @@ impl<Cx: Parameter + 'static> UserChallengeResponse<Cx> for KeySignature<Cx> {
         self.user_id
     }
 
-    /// The benchmarked cost of verifying a signature of this key type.
-    fn verification_weight(&self) -> Weight {
-        match self.signature {
-            MultiSignature::Sr25519(_) => <() as WeightInfo>::verify_credential_sr25519(),
-            MultiSignature::Ed25519(_) => <() as WeightInfo>::verify_credential_ed25519(),
-            MultiSignature::Ecdsa(_) => <() as WeightInfo>::verify_credential_ecdsa(),
-            MultiSignature::Eth(_) => <() as WeightInfo>::verify_credential_eth(),
-        }
+    /// A signature is over a fixed-size message: it has no client data or authenticator data,
+    /// so both components are zero. What verifying it costs depends only on
+    /// the key type, which [`crate::WeightInfo`] covers by charging the costliest one.
+    fn weight_components(&self) -> (u32, u32) {
+        (0, 0)
     }
 }
 
