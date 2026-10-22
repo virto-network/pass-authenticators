@@ -118,7 +118,7 @@ impl pallet_pass::Config for Test {
     type RegisterOrigin = EnsureRootWithSuccess<Self::AccountId, ConstU64<0>>;
     type AddressGenerator = SumAddressGenerator;
     type Balances = Balances;
-    type Authenticator = Authenticator<BlockChallenger, AuthorityId>;
+    type Authenticator = Authenticator<BlockChallenger, AuthorityId, crate::DefaultWeights<Test>>;
     type Scheduler = Scheduler;
     type BlockNumberProvider = System;
     type RegistrarConsideration = ();
@@ -132,6 +132,7 @@ impl pallet_pass::Config for Test {
     type CallMatcher = pallet_pass::ScaleCallMatcher;
     type MaxFilteredCalls = ConstU32<10>;
     type MaxFilteredAssets = ConstU32<5>;
+    type UnrestrictedSessionKeys = ConstBool<true>;
 }
 
 pub struct WebAuthnClient {

@@ -624,10 +624,11 @@ mod domain_separation {
     }
 }
 
-/// The composite reports the verification weight of whichever authenticator it carries.
+/// The composite reports the verification weight of whichever authenticator it carries, as
+/// that authenticator's own `WeightInfo` binding computes it.
 mod verification_weight {
     use super::*;
-    use traits_authn::{DeviceChallengeResponse, UserChallengeResponse};
+    use traits_authn::{Authenticator, UserAuthenticator};
 
     #[test]
     fn composite_reports_the_inner_authenticators_weight() {
@@ -638,22 +639,33 @@ mod verification_weight {
             let (_, ssh) = make_ssh_registration(&[]);
 
             for (attestation, expected) in [
-                (eth, <() as pass_ethereum::WeightInfo>::verify_attestation()),
-                (sol, <() as pass_solana::WeightInfo>::verify_attestation()),
+                (
+                    eth,
+                    <pass_ethereum::SubstrateWeight<Test> as pass_ethereum::WeightInfo>::verify_attestation(),
+                ),
+                (
+                    sol,
+                    <pass_solana::SubstrateWeight<Test> as pass_solana::WeightInfo>::verify_attestation(),
+                ),
+                // Bitcoin charges the costliest of its two key forms.
                 (
                     btc,
-                    <() as pass_bitcoin::WeightInfo>::verify_attestation_compressed(),
+                    <pass_bitcoin::SubstrateWeight<Test> as pass_bitcoin::WeightInfo>::verify_attestation_compressed()
+                        .max(<pass_bitcoin::SubstrateWeight<Test> as pass_bitcoin::WeightInfo>::verify_attestation_uncompressed()),
                 ),
-                (ssh, <() as pass_ssh::WeightInfo>::verify_attestation()),
+                (
+                    ssh,
+                    <pass_ssh::SubstrateWeight<Test> as pass_ssh::WeightInfo>::verify_attestation(),
+                ),
             ] {
                 assert!(expected.ref_time() > 0);
-                assert_eq!(attestation.verification_weight(), expected);
+                assert_eq!(PassAuthenticator::verification_weight(&attestation), expected);
             }
 
             let (_, credential) = make_eth_credential(&[]);
             assert_eq!(
-                credential.verification_weight(),
-                <() as pass_ethereum::WeightInfo>::verify_credential()
+                <PassDevice as UserAuthenticator>::verification_weight(&credential),
+                <pass_ethereum::SubstrateWeight<Test> as pass_ethereum::WeightInfo>::verify_credential()
             );
         })
     }

@@ -1,0 +1,83 @@
+[package]
+name = "pass-authenticators-bench-runtime"
+description = "A minimal runtime that runs the authenticators' benchmarks, to generate their weights with `frame-omni-bencher`. Not meant to run a chain."
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+version.workspace = true
+publish = false
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+codec.workspace = true
+scale-info.workspace = true
+serde_json = { workspace = true, features = ["alloc"] }
+
+# Authenticators
+pass-bitcoin = { package = "pass-authenticators-bitcoin", path = "../authenticators/bitcoin", default-features = false, features = ["runtime"] }
+pass-ethereum = { package = "pass-authenticators-ethereum", path = "../authenticators/ethereum", default-features = false, features = ["runtime"] }
+pass-nostr = { package = "pass-authenticators-nostr", path = "../authenticators/nostr", default-features = false, features = ["runtime"] }
+pass-solana = { package = "pass-authenticators-solana", path = "../authenticators/solana", default-features = false, features = ["runtime"] }
+pass-ssh = { package = "pass-authenticators-ssh", path = "../authenticators/ssh", default-features = false, features = ["runtime"] }
+pass-substrate-keys = { package = "pass-authenticators-substrate-keys", path = "../authenticators/substrate-keys", default-features = false, features = ["runtime"] }
+pass-webauthn = { package = "pass-authenticators-webauthn", path = "../authenticators/webauthn", default-features = false, features = ["runtime"] }
+
+# Polkadot SDK
+frame-benchmarking = { workspace = true, optional = true }
+frame-executive.workspace = true
+frame-support.workspace = true
+frame-system.workspace = true
+sp-api.workspace = true
+sp-block-builder.workspace = true
+sp-core.workspace = true
+sp-genesis-builder.workspace = true
+sp-inherents.workspace = true
+sp-runtime.workspace = true
+sp-version.workspace = true
+
+[build-dependencies]
+substrate-wasm-builder = { workspace = true, optional = true }
+
+[features]
+default = ["std"]
+std = [
+  "codec/std",
+  "frame-benchmarking?/std",
+  "frame-executive/std",
+  "frame-support/std",
+  "frame-system/std",
+  "pass-bitcoin/std",
+  "pass-ethereum/std",
+  "pass-nostr/std",
+  "pass-solana/std",
+  "pass-ssh/std",
+  "pass-substrate-keys/std",
+  "pass-webauthn/std",
+  "scale-info/std",
+  "serde_json/std",
+  "sp-api/std",
+  "sp-block-builder/std",
+  "sp-core/std",
+  "sp-genesis-builder/std",
+  "sp-inherents/std",
+  "sp-runtime/std",
+  "sp-version/std",
+  "substrate-wasm-builder",
+]
+runtime-benchmarks = [
+  "dep:frame-benchmarking",
+  "frame-benchmarking/runtime-benchmarks",
+  "frame-support/runtime-benchmarks",
+  "frame-system/runtime-benchmarks",
+  "pass-bitcoin/runtime-benchmarks",
+  "pass-ethereum/runtime-benchmarks",
+  "pass-nostr/runtime-benchmarks",
+  "pass-solana/runtime-benchmarks",
+  "pass-ssh/runtime-benchmarks",
+  "pass-substrate-keys/runtime-benchmarks",
+  "pass-webauthn/runtime-benchmarks",
+  "sp-runtime/runtime-benchmarks",
+]

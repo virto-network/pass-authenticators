@@ -27,7 +27,36 @@ mod tests;
 pub mod weights;
 
 #[cfg(feature = "runtime")]
-pub use weights::WeightInfo;
+pub use weights::{SubstrateWeight, WeightInfo};
+
+/// This crate's [`WeightInfo`] as the authenticator's [`AuthenticatorWeightInfo`], which the
+/// `Authenticator` and `Device` aliases take: bind [`DefaultWeights<Runtime>`] for the weights
+/// in this crate, or `Weights<W>` for any other [`WeightInfo`] `W`, such as the output of a
+/// runtime's own run of this crate's benchmarks.
+///
+/// Verification doesn't depend on the lengths `c` and `a` (a registration or a signature is a
+/// fixed-size message and a signature), but on whether the key is compressed (BIP-137 flags
+/// 31-34) or not (27-30), which isn't known from them. So both report the costliest of the two:
+/// an upper bound for any registration or signature.
+///
+/// [`AuthenticatorWeightInfo`]: traits_authn::AuthenticatorWeightInfo
+#[cfg(feature = "runtime")]
+pub struct Weights<W>(core::marker::PhantomData<W>);
+
+/// The weights of this crate's benchmarks (see [`Weights`]).
+#[cfg(feature = "runtime")]
+pub type DefaultWeights<T> = Weights<SubstrateWeight<T>>;
+
+#[cfg(feature = "runtime")]
+impl<W: WeightInfo> traits_authn::AuthenticatorWeightInfo for Weights<W> {
+    fn verify_device(_c: u32, _a: u32) -> frame_support::weights::Weight {
+        W::verify_attestation_compressed().max(W::verify_attestation_uncompressed())
+    }
+
+    fn verify_user(_c: u32, _a: u32) -> frame_support::weights::Weight {
+        W::verify_credential_compressed().max(W::verify_credential_uncompressed())
+    }
+}
 
 #[cfg(feature = "runtime")]
 mod runtime {
@@ -39,8 +68,16 @@ mod runtime {
     mod key_signature;
 
     type CxOf<Ch> = <Ch as Challenger>::Context;
-    pub type Authenticator<Ch, AuthId> = Auth<Device<Ch, AuthId>, BtcRegistration<CxOf<Ch>>>;
-    pub type Device<Ch, A> = Dev<BtcPubkeyHash, A, Ch, BtcSignature<CxOf<Ch>>>;
+    /// The Bitcoin authenticator, for the challenger `Ch` and the authority `AuthId`.
+    ///
+    /// `W` is what verifying registrations and signatures costs, which `fc-pallet-pass` charges
+    /// on top of its own weights. Bind [`DefaultWeights<Runtime>`](crate::DefaultWeights) (this
+    /// crate's weights), or [`Weights<W>`](crate::Weights) for a runtime's own run of this
+    /// crate's benchmarks.
+    pub type Authenticator<Ch, AuthId, W> =
+        Auth<Device<Ch, AuthId, W>, BtcRegistration<CxOf<Ch>>, W>;
+    /// A Bitcoin key, registered as a device. `W` is as in [`Authenticator`].
+    pub type Device<Ch, A, W> = Dev<BtcPubkeyHash, A, Ch, BtcSignature<CxOf<Ch>>, W>;
 }
 
 #[cfg(feature = "runtime")]

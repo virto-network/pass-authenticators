@@ -31,11 +31,19 @@ impl traits_authn::ChallengerBenchmarkHelper for BlockChallenger {
     }
 }
 
-pub type Eth = pass_ethereum::Authenticator<BlockChallenger, PassAuthority>;
-pub type Btc = pass_bitcoin::Authenticator<BlockChallenger, PassAuthority>;
-pub type Sol = pass_solana::Authenticator<BlockChallenger, PassAuthority>;
-pub type Nostr = pass_nostr::Authenticator<BlockChallenger, PassAuthority>;
-pub type Ssh = pass_ssh::Authenticator<BlockChallenger, PassAuthority>;
+pub type Eth = pass_ethereum::Authenticator<
+    BlockChallenger,
+    PassAuthority,
+    pass_ethereum::DefaultWeights<Test>,
+>;
+pub type Btc =
+    pass_bitcoin::Authenticator<BlockChallenger, PassAuthority, pass_bitcoin::DefaultWeights<Test>>;
+pub type Sol =
+    pass_solana::Authenticator<BlockChallenger, PassAuthority, pass_solana::DefaultWeights<Test>>;
+pub type Nostr =
+    pass_nostr::Authenticator<BlockChallenger, PassAuthority, pass_nostr::DefaultWeights<Test>>;
+pub type Ssh =
+    pass_ssh::Authenticator<BlockChallenger, PassAuthority, pass_ssh::DefaultWeights<Test>>;
 
 composite_authenticator!(
     pub Pass<PassAuthority> {
@@ -138,6 +146,7 @@ impl pallet_pass::Config for Test {
     type CallMatcher = pallet_pass::ScaleCallMatcher;
     type MaxFilteredCalls = ConstU32<10>;
     type MaxFilteredAssets = ConstU32<5>;
+    type UnrestrictedSessionKeys = ConstBool<true>;
 }
 
 pub fn new_test_ext() -> TestExternalities {

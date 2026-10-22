@@ -14,6 +14,7 @@ version.workspace = true
 codec.workspace = true
 k256 = { workspace = true, optional = true }
 frame-support = { workspace = true, optional = true }
+frame-system = { workspace = true, optional = true }
 log.workspace = true
 scale-info = { workspace = true, optional = true }
 sp-core = { workspace = true, optional = true }
@@ -34,6 +35,7 @@ pallet-scheduler.workspace = true
 default = ["std", "runtime", "full-crypto"]
 runtime = [
   "dep:frame-support",
+  "dep:frame-system",
   "dep:k256",
   "dep:scale-info",
   "dep:sp-core",
@@ -47,6 +49,7 @@ runtime-benchmarks = [
   "dep:frame",
   "frame/runtime-benchmarks",
   "frame-support?/runtime-benchmarks",
+  "frame-system?/runtime-benchmarks",
   "pallet-balances/runtime-benchmarks",
   "pallet-pass/runtime-benchmarks",
   "pallet-scheduler/runtime-benchmarks",
@@ -56,6 +59,7 @@ runtime-benchmarks = [
 std = [
   "codec/std",
   "frame-support?/std",
+  "frame-system?/std",
   "frame/std",
   "k256?/std",
   "log/std",
@@ -70,6 +74,7 @@ std = [
 ]
 try-runtime = [
   "frame-support?/try-runtime",
+  "frame-system?/try-runtime",
   "pallet-pass/try-runtime",
   "pallet-balances/try-runtime",
   "pallet-scheduler/try-runtime",

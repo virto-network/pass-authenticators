@@ -1,7 +1,7 @@
 use super::*;
 use crate::btc::recover_btc_pubkey_hash;
 
-impl<Ch: Challenger, AuthId> From<BtcRegistration<CxOf<Ch>>> for Device<Ch, AuthId> {
+impl<Ch: Challenger, AuthId, W> From<BtcRegistration<CxOf<Ch>>> for Device<Ch, AuthId, W> {
     fn from(reg: BtcRegistration<CxOf<Ch>>) -> Self {
         Self::new(reg.pubkey_hash)
     }
@@ -46,12 +46,9 @@ impl<Cx: Parameter + Encode + 'static> DeviceChallengeResponse<Cx> for BtcRegist
         self.pubkey_hash.as_ref()
     }
 
-    /// The benchmarked cost of verifying this registration, which depends on whether its key is
-    /// compressed (BIP-137 flags 31-34) or not (27-30).
-    fn verification_weight(&self) -> Weight {
-        match self.signature[0] {
-            27..=30 => <() as crate::WeightInfo>::verify_attestation_uncompressed(),
-            _ => <() as crate::WeightInfo>::verify_attestation_compressed(),
-        }
+    /// A registration is a fixed-size message and signature: it has no client data or
+    /// authenticator data, so both components are zero (see [`crate::Weights`]).
+    fn weight_components(&self) -> (u32, u32) {
+        (0, 0)
     }
 }

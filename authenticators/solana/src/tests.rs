@@ -220,11 +220,21 @@ mod edge_cases {
 
 mod verification_weight {
     use super::*;
-    use crate::WeightInfo;
-    use traits_authn::{DeviceChallengeResponse, UserChallengeResponse};
+    use crate::WeightInfo as _;
+    use frame_support::weights::Weight;
+    use traits_authn::{
+        AuthenticatorWeightInfo, DeviceChallengeResponse, UserAuthenticator, UserChallengeResponse,
+    };
+
+    /// The weights the mock runtime binds...
+    type Weights = crate::DefaultWeights<Test>;
+    /// ...which are the ones in this crate's `weights.rs`.
+    type Measured = crate::SubstrateWeight<Test>;
+    type Authn = <Test as pallet_pass::Config>::Authenticator;
+    type Device = <Authn as traits_authn::Authenticator>::Device;
 
     #[test]
-    fn weights_are_non_zero_and_the_benchmarked_ones() {
+    fn weights_are_non_zero_and_the_bound_ones() {
         new_test_ext().execute_with(|| {
             let (message, pubkey, signature) = make_signature(&[]);
 
@@ -233,10 +243,14 @@ mod verification_weight {
                 message: message.clone(),
                 signature,
             };
-            assert!(registration.verification_weight().ref_time() > 0);
+            // A registration is fixed-size: it has no client data or authenticator data.
+            assert_eq!(registration.weight_components(), (0, 0));
+            let weight = <Authn as traits_authn::Authenticator>::verification_weight(&registration);
+            assert!(weight.ref_time() > 0);
+            assert_eq!(weight, Measured::verify_attestation());
             assert_eq!(
-                registration.verification_weight(),
-                <() as WeightInfo>::verify_attestation()
+                weight,
+                <Weights as AuthenticatorWeightInfo>::verify_device(0, 0)
             );
 
             let credential = SolSignature {
@@ -244,12 +258,55 @@ mod verification_weight {
                 message,
                 signature,
             };
-            assert!(credential.verification_weight().ref_time() > 0);
+            assert_eq!(credential.weight_components(), (0, 0));
+            let weight = <Device as UserAuthenticator>::verification_weight(&credential);
+            assert!(weight.ref_time() > 0);
+            assert_eq!(weight, Measured::verify_credential());
             assert_eq!(
-                credential.verification_weight(),
-                <() as WeightInfo>::verify_credential()
+                weight,
+                <Weights as AuthenticatorWeightInfo>::verify_user(0, 0)
             );
         })
+    }
+
+    #[test]
+    fn unit_weights_are_the_same_as_substrate_weight() {
+        assert_eq!(
+            <() as crate::WeightInfo>::verify_attestation(),
+            Measured::verify_attestation()
+        );
+        assert_eq!(
+            <() as crate::WeightInfo>::verify_credential(),
+            Measured::verify_credential()
+        );
+    }
+
+    /// A runtime's own run of the benchmarks, with made-up numbers far from the ones here.
+    struct OwnWeights;
+    impl crate::WeightInfo for OwnWeights {
+        fn verify_attestation() -> Weight {
+            Weight::from_parts(1_000, 1)
+        }
+        fn verify_credential() -> Weight {
+            Weight::from_parts(2_000, 2)
+        }
+    }
+
+    #[test]
+    fn a_runtime_can_bind_its_own_weights() {
+        type Own = crate::Weights<OwnWeights>;
+        assert_eq!(
+            <Own as AuthenticatorWeightInfo>::verify_device(0, 0),
+            OwnWeights::verify_attestation()
+        );
+        assert_eq!(
+            <Own as AuthenticatorWeightInfo>::verify_user(0, 0),
+            OwnWeights::verify_credential()
+        );
+        assert_ne!(
+            <Own as AuthenticatorWeightInfo>::verify_device(0, 0),
+            <Weights as AuthenticatorWeightInfo>::verify_device(0, 0)
+        );
     }
 }
 
@@ -260,7 +317,8 @@ mod benchmark_helpers {
     use frame::traits::TxBaseImplication;
     use traits_authn::{AuthenticatorBenchmarkHelper, DeviceChallengeResponse};
 
-    type Authenticator = crate::Authenticator<BlockChallenger, AuthorityId>;
+    type Authenticator =
+        crate::Authenticator<BlockChallenger, AuthorityId, crate::DefaultWeights<Test>>;
 
     #[test]
     fn helpers_register_and_authenticate() {
