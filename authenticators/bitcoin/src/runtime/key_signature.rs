@@ -19,13 +19,10 @@ impl<Cx: Parameter + Encode + 'static> UserChallengeResponse<Cx> for BtcSignatur
         self.user_id
     }
 
-    /// The benchmarked cost of verifying this signature, which depends on whether its key is
-    /// compressed (BIP-137 flags 31-34) or not (27-30).
-    fn verification_weight(&self) -> Weight {
-        match self.signature[0] {
-            27..=30 => <() as crate::WeightInfo>::verify_credential_uncompressed(),
-            _ => <() as crate::WeightInfo>::verify_credential_compressed(),
-        }
+    /// A signature is over a fixed-size message: it has no client data or authenticator data,
+    /// so both components are zero (see [`crate::Weights`]).
+    fn weight_components(&self) -> (u32, u32) {
+        (0, 0)
     }
 }
 

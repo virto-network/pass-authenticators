@@ -110,6 +110,7 @@ impl pallet_pass::Config for Test {
     type CallMatcher = pallet_pass::ScaleCallMatcher;
     type MaxFilteredCalls = ConstU32<10>;
     type MaxFilteredAssets = ConstU32<5>;
+    type UnrestrictedSessionKeys = ConstBool<true>;
 }
 
 #[cfg(feature = "runtime-benchmarks")]

@@ -314,64 +314,125 @@ mod btc_signing {
 
 mod verification_weight {
     use super::*;
-    use crate::WeightInfo;
-    use traits_authn::{DeviceChallengeResponse, UserChallengeResponse};
+    use crate::WeightInfo as _;
+    use frame_support::weights::Weight;
+    use traits_authn::{
+        AuthenticatorWeightInfo, DeviceChallengeResponse, UserAuthenticator, UserChallengeResponse,
+    };
 
+    /// The weights the mock runtime binds...
+    type Weights = crate::DefaultWeights<Test>;
+    /// ...which are the ones in this crate's `weights.rs`.
+    type Measured = crate::SubstrateWeight<Test>;
+    type Authn = <Test as pallet_pass::Config>::Authenticator;
+    type Device = <Authn as traits_authn::Authenticator>::Device;
+
+    /// A registration or a signature is fixed-size, and whether its key is compressed isn't
+    /// something the weight components can tell apart: both forms are charged the costliest.
     #[test]
-    fn weights_are_non_zero_and_the_benchmarked_ones() {
+    fn weights_cover_both_key_forms() {
+        let attestations = [
+            Measured::verify_attestation_compressed(),
+            Measured::verify_attestation_uncompressed(),
+        ];
+        let credentials = [
+            Measured::verify_credential_compressed(),
+            Measured::verify_credential_uncompressed(),
+        ];
         new_test_ext().execute_with(|| {
-            let (message, pubkey_hash, signature) = make_signature(&[]);
+            // BIP-137: flags 31-34 are for compressed keys, and 27-30 for uncompressed ones.
+            for flag in [27, 31] {
+                let (message, pubkey_hash, mut signature) = make_signature(&[]);
+                signature[0] = flag;
 
-            let registration = BtcRegistration {
-                pubkey_hash,
-                message: message.clone(),
-                signature,
-            };
-            assert!(registration.verification_weight().ref_time() > 0);
-            assert_eq!(
-                registration.verification_weight(),
-                <() as WeightInfo>::verify_attestation_compressed()
-            );
+                let registration = BtcRegistration {
+                    pubkey_hash,
+                    message: message.clone(),
+                    signature,
+                };
+                assert_eq!(registration.weight_components(), (0, 0), "flag {flag}");
+                let weight =
+                    <Authn as traits_authn::Authenticator>::verification_weight(&registration);
+                assert!(weight.ref_time() > 0, "flag {flag}");
+                assert_eq!(
+                    weight,
+                    <Weights as AuthenticatorWeightInfo>::verify_device(0, 0),
+                    "flag {flag}"
+                );
+                for b in attestations {
+                    assert!(weight.all_gte(b), "flag {flag}");
+                }
 
-            let credential = BtcSignature {
-                user_id: USER,
-                message,
-                signature,
-            };
-            assert!(credential.verification_weight().ref_time() > 0);
-            assert_eq!(
-                credential.verification_weight(),
-                <() as WeightInfo>::verify_credential_compressed()
-            );
+                let credential = BtcSignature {
+                    user_id: USER,
+                    message,
+                    signature,
+                };
+                assert_eq!(credential.weight_components(), (0, 0), "flag {flag}");
+                let weight = <Device as UserAuthenticator>::verification_weight(&credential);
+                assert!(weight.ref_time() > 0, "flag {flag}");
+                assert_eq!(
+                    weight,
+                    <Weights as AuthenticatorWeightInfo>::verify_user(0, 0),
+                    "flag {flag}"
+                );
+                for b in credentials {
+                    assert!(weight.all_gte(b), "flag {flag}");
+                }
+            }
         })
     }
 
     #[test]
-    fn uncompressed_keys_are_charged_their_own_weight() {
-        new_test_ext().execute_with(|| {
-            let (message, pubkey_hash, mut signature) = make_signature(&[]);
-            // BIP-137: flags 27-30 are for uncompressed keys.
-            signature[0] = 27;
+    fn unit_weights_are_the_same_as_substrate_weight() {
+        assert_eq!(
+            <() as crate::WeightInfo>::verify_attestation_compressed(),
+            Measured::verify_attestation_compressed()
+        );
+        assert_eq!(
+            <() as crate::WeightInfo>::verify_attestation_uncompressed(),
+            Measured::verify_attestation_uncompressed()
+        );
+        assert_eq!(
+            <() as crate::WeightInfo>::verify_credential_compressed(),
+            Measured::verify_credential_compressed()
+        );
+        assert_eq!(
+            <() as crate::WeightInfo>::verify_credential_uncompressed(),
+            Measured::verify_credential_uncompressed()
+        );
+    }
 
-            let registration = BtcRegistration {
-                pubkey_hash,
-                message: message.clone(),
-                signature,
-            };
-            assert_eq!(
-                registration.verification_weight(),
-                <() as WeightInfo>::verify_attestation_uncompressed()
-            );
-            let credential = BtcSignature {
-                user_id: USER,
-                message,
-                signature,
-            };
-            assert_eq!(
-                credential.verification_weight(),
-                <() as WeightInfo>::verify_credential_uncompressed()
-            );
-        })
+    /// A runtime's own run of the benchmarks, with made-up numbers far from the ones here,
+    /// where the uncompressed form is the costliest for registrations and the compressed one for
+    /// credentials.
+    struct OwnWeights;
+    impl crate::WeightInfo for OwnWeights {
+        fn verify_attestation_compressed() -> Weight {
+            Weight::from_parts(1_000, 1)
+        }
+        fn verify_attestation_uncompressed() -> Weight {
+            Weight::from_parts(2_000, 2)
+        }
+        fn verify_credential_compressed() -> Weight {
+            Weight::from_parts(4_000, 4)
+        }
+        fn verify_credential_uncompressed() -> Weight {
+            Weight::from_parts(3_000, 3)
+        }
+    }
+
+    #[test]
+    fn a_runtime_can_bind_its_own_weights() {
+        type Own = crate::Weights<OwnWeights>;
+        assert_eq!(
+            <Own as AuthenticatorWeightInfo>::verify_device(0, 0),
+            OwnWeights::verify_attestation_uncompressed()
+        );
+        assert_eq!(
+            <Own as AuthenticatorWeightInfo>::verify_user(0, 0),
+            OwnWeights::verify_credential_compressed()
+        );
     }
 }
 
@@ -382,7 +443,8 @@ mod benchmark_helpers {
     use frame::traits::TxBaseImplication;
     use traits_authn::{AuthenticatorBenchmarkHelper, DeviceChallengeResponse};
 
-    type Authenticator = crate::Authenticator<BlockChallenger, AuthorityId>;
+    type Authenticator =
+        crate::Authenticator<BlockChallenger, AuthorityId, crate::DefaultWeights<Test>>;
 
     #[test]
     fn helpers_register_and_authenticate() {

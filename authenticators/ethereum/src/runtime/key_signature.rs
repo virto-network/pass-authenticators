@@ -20,9 +20,10 @@ impl<Cx: Parameter + Encode + 'static> UserChallengeResponse<Cx> for EthSignatur
         self.user_id
     }
 
-    /// The benchmarked cost of verifying this signature.
-    fn verification_weight(&self) -> Weight {
-        <() as crate::WeightInfo>::verify_credential()
+    /// A signature is over a fixed-size message: it has no client data or authenticator data,
+    /// so both components are zero (see [`crate::Weights`]).
+    fn weight_components(&self) -> (u32, u32) {
+        (0, 0)
     }
 }
 

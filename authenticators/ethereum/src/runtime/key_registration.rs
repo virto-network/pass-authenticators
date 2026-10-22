@@ -1,7 +1,7 @@
 use super::*;
 use crate::eth::recover_eth_address;
 
-impl<Ch: Challenger, AuthId> From<EthRegistration<CxOf<Ch>>> for Device<Ch, AuthId> {
+impl<Ch: Challenger, AuthId, W> From<EthRegistration<CxOf<Ch>>> for Device<Ch, AuthId, W> {
     fn from(reg: EthRegistration<CxOf<Ch>>) -> Self {
         Self::new(reg.address)
     }
@@ -50,8 +50,9 @@ impl<Cx: Parameter + Encode + 'static> DeviceChallengeResponse<Cx> for EthRegist
         self.address.as_ref()
     }
 
-    /// The benchmarked cost of verifying this registration.
-    fn verification_weight(&self) -> Weight {
-        <() as crate::WeightInfo>::verify_attestation()
+    /// A registration is a fixed-size message and signature: it has no client data or
+    /// authenticator data, so both components are zero (see [`crate::Weights`]).
+    fn weight_components(&self) -> (u32, u32) {
+        (0, 0)
     }
 }

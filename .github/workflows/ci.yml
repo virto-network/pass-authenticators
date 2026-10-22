@@ -169,7 +169,7 @@ jobs:
         run: |
           runtime=target/release/wbuild/pass-authenticators-bench-runtime/pass_authenticators_bench_runtime.compact.compressed.wasm
           frame-omni-bencher v1 benchmark pallet --all --steps 2 --repeat 1 --runtime "$runtime"
-          for pallet in pass_webauthn pass_substrate_keys; do
+          for pallet in pass_webauthn pass_substrate_keys pass_ethereum pass_bitcoin pass_nostr pass_solana pass_ssh; do
             frame-omni-bencher v1 benchmark pallet --pallet "$pallet" --extrinsic '*' \
               --steps 2 --repeat 1 --runtime "$runtime" \
               --template .maintain/frame-weight-template.hbs --output "$RUNNER_TEMP/$pallet.rs"
@@ -182,7 +182,8 @@ jobs:
       - name: Check the generated weights match the committed ones' shape
         run: |
           shape() { grep -E '^\s*(pub (struct|trait) |impl|fn )' "$1" | sed -E 's/([( ])_([a-z]+:)/\1\2/g'; }
-          for pair in "pass_webauthn webauthn" "pass_substrate_keys substrate-keys"; do
+          for pair in "pass_webauthn webauthn" "pass_substrate_keys substrate-keys" "pass_ethereum ethereum" \
+                      "pass_bitcoin bitcoin" "pass_nostr nostr" "pass_solana solana" "pass_ssh ssh"; do
             set -- $pair
             diff <(shape "authenticators/$2/src/weights.rs") <(shape "$RUNNER_TEMP/$1.rs")
           done

@@ -1,7 +1,7 @@
 use super::*;
 use crate::schnorr::verify_schnorr;
 
-impl<Ch: Challenger, AuthId> From<NostrRegistration<CxOf<Ch>>> for Device<Ch, AuthId> {
+impl<Ch: Challenger, AuthId, W> From<NostrRegistration<CxOf<Ch>>> for Device<Ch, AuthId, W> {
     fn from(reg: NostrRegistration<CxOf<Ch>>) -> Self {
         Self::new(reg.pubkey)
     }
@@ -30,8 +30,9 @@ impl<Cx: Parameter + Encode + 'static> DeviceChallengeResponse<Cx> for NostrRegi
         self.pubkey.as_ref()
     }
 
-    /// The benchmarked cost of verifying this registration.
-    fn verification_weight(&self) -> Weight {
-        <() as crate::WeightInfo>::verify_attestation()
+    /// A registration is a fixed-size message and signature: it has no client data or
+    /// authenticator data, so both components are zero (see [`crate::Weights`]).
+    fn weight_components(&self) -> (u32, u32) {
+        (0, 0)
     }
 }

@@ -135,5 +135,10 @@ mod benches {
     frame_benchmarking::define_benchmarks!(
         [pass_webauthn, pass_webauthn::benchmarking::Pallet::<Runtime>]
         [pass_substrate_keys, pass_substrate_keys::benchmarking::Pallet::<Runtime>]
+        [pass_ethereum, pass_ethereum::benchmarking::Pallet::<Runtime>]
+        [pass_bitcoin, pass_bitcoin::benchmarking::Pallet::<Runtime>]
+        [pass_nostr, pass_nostr::benchmarking::Pallet::<Runtime>]
+        [pass_solana, pass_solana::benchmarking::Pallet::<Runtime>]
+        [pass_ssh, pass_ssh::benchmarking::Pallet::<Runtime>]
     );
 }

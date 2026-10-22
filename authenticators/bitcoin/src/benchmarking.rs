@@ -186,8 +186,9 @@ parameter_types! {
     pub const BenchAuthority: AuthorityId = *b"pass-authenticators/bench-authn\0";
 }
 
-type BenchAuthenticator = Authenticator<BenchChallenger, BenchAuthority>;
-type BenchDevice = Device<BenchChallenger, BenchAuthority>;
+// What verification costs is what these benchmarks measure, so it's irrelevant here.
+type BenchAuthenticator = Authenticator<BenchChallenger, BenchAuthority, ()>;
+type BenchDevice = Device<BenchChallenger, BenchAuthority, ()>;
 
 const CONTEXT: u32 = 1;
 const XTC: [u8; 32] = [0x42; 32];

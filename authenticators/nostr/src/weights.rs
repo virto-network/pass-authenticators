@@ -17,12 +17,31 @@ use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
 /// Weight functions needed for `pass_authenticators_nostr`.
+///
+/// This crate's `Weights<W>` turns an implementation into the authenticator's
+/// `fc_traits_authn::AuthenticatorWeightInfo`: bind `Weights<SubstrateWeight<Runtime>>` for the
+/// weights in this file, or `Weights<W>` for a runtime's own run of these benchmarks.
 pub trait WeightInfo {
 	fn verify_attestation() -> Weight;
 	fn verify_credential() -> Weight;
 }
 
 // PLACEHOLDER: not produced by a benchmark run.
+/// Weights for this crate, as in this file: PLACEHOLDERS until a benchmark run replaces them.
+pub struct SubstrateWeight<T>(PhantomData<T>);
+impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+	/// PLACEHOLDER: conservative estimate, not measured.
+	fn verify_attestation() -> Weight {
+		Weight::from_parts(600_000_000, 0)
+	}
+
+	/// PLACEHOLDER: conservative estimate, not measured.
+	fn verify_credential() -> Weight {
+		Weight::from_parts(600_000_000, 0)
+	}
+}
+
+// For backwards compatibility and tests.
 impl WeightInfo for () {
 	/// PLACEHOLDER: conservative estimate, not measured.
 	fn verify_attestation() -> Weight {

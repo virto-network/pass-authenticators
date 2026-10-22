@@ -64,3 +64,9 @@ name = "pass-authenticators-integration-tests"
 # Its Cargo.toml has `publish = false`; release-plz requires the config to agree.
 release = false
 publish = false
+
+[[package]]
+name = "pass-authenticators-bench-runtime"
+# Its Cargo.toml has `publish = false`; release-plz requires the config to agree.
+release = false
+publish = false

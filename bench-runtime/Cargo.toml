@@ -17,6 +17,11 @@ scale-info.workspace = true
 serde_json = { workspace = true, features = ["alloc"] }
 
 # Authenticators
+pass-bitcoin = { package = "pass-authenticators-bitcoin", path = "../authenticators/bitcoin", default-features = false, features = ["runtime"] }
+pass-ethereum = { package = "pass-authenticators-ethereum", path = "../authenticators/ethereum", default-features = false, features = ["runtime"] }
+pass-nostr = { package = "pass-authenticators-nostr", path = "../authenticators/nostr", default-features = false, features = ["runtime"] }
+pass-solana = { package = "pass-authenticators-solana", path = "../authenticators/solana", default-features = false, features = ["runtime"] }
+pass-ssh = { package = "pass-authenticators-ssh", path = "../authenticators/ssh", default-features = false, features = ["runtime"] }
 pass-substrate-keys = { package = "pass-authenticators-substrate-keys", path = "../authenticators/substrate-keys", default-features = false, features = ["runtime"] }
 pass-webauthn = { package = "pass-authenticators-webauthn", path = "../authenticators/webauthn", default-features = false, features = ["runtime"] }
 
@@ -44,6 +49,11 @@ std = [
   "frame-executive/std",
   "frame-support/std",
   "frame-system/std",
+  "pass-bitcoin/std",
+  "pass-ethereum/std",
+  "pass-nostr/std",
+  "pass-solana/std",
+  "pass-ssh/std",
   "pass-substrate-keys/std",
   "pass-webauthn/std",
   "scale-info/std",
@@ -62,6 +72,11 @@ runtime-benchmarks = [
   "frame-benchmarking/runtime-benchmarks",
   "frame-support/runtime-benchmarks",
   "frame-system/runtime-benchmarks",
+  "pass-bitcoin/runtime-benchmarks",
+  "pass-ethereum/runtime-benchmarks",
+  "pass-nostr/runtime-benchmarks",
+  "pass-solana/runtime-benchmarks",
+  "pass-ssh/runtime-benchmarks",
   "pass-substrate-keys/runtime-benchmarks",
   "pass-webauthn/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
