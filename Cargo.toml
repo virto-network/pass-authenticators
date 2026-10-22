@@ -73,9 +73,9 @@ substrate-wasm-builder = { version = "34.0.1" }
 
 # FRAME Contrib
 # temporary: until frame-contrib 3.x is published (W5)
-traits-authn = { version = "3.0.0-pre.2", package = "fc-traits-authn", git = "https://github.com/virto-network/frame-contrib", rev = "a86ebf02ab0ffaca9f10cf59a56e49b7e545f266", default-features = false }
+traits-authn = { version = "3.0.0-pre.2", package = "fc-traits-authn", git = "https://github.com/virto-network/frame-contrib", rev = "b0ab0c64272a36102913355ffd119b9713f7e9f9", default-features = false }
 # temporary: until frame-contrib 3.x is published (W5)
-pallet-pass = { version = "3.0.0-pre.2", package = "fc-pallet-pass", git = "https://github.com/virto-network/frame-contrib", rev = "a86ebf02ab0ffaca9f10cf59a56e49b7e545f266", default-features = false }
+pallet-pass = { version = "3.0.0-pre.2", package = "fc-pallet-pass", git = "https://github.com/virto-network/frame-contrib", rev = "b0ab0c64272a36102913355ffd119b9713f7e9f9", default-features = false }
 
 [workspace]
 members = ["authenticators/*", "bench-runtime", "integration-tests"]
