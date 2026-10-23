@@ -133,6 +133,8 @@ impl pallet_pass::Config for Test {
     type MaxFilteredCalls = ConstU32<10>;
     type MaxFilteredAssets = ConstU32<5>;
     type UnrestrictedSessionKeys = ConstBool<true>;
+    type MaxNestedCallDepth = ConstU32<4>;
+    type MaxNestedCalls = ConstU32<64>;
 }
 
 pub struct WebAuthnClient {
