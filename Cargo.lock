@@ -1411,7 +1411,7 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 [[package]]
 name = "fc-pallet-pass"
 version = "3.0.0-pre.2"
-source = "git+https://github.com/virto-network/frame-contrib?rev=a6bb2557c60c52f86b7ce59a6d76d678fd71a526#a6bb2557c60c52f86b7ce59a6d76d678fd71a526"
+source = "git+https://github.com/virto-network/frame-contrib?rev=4d16b1e196621a62f48ca8f1a8fea1ae7807d18a#4d16b1e196621a62f48ca8f1a8fea1ae7807d18a"
 dependencies = [
  "fc-traits-authn",
  "frame-benchmarking",
@@ -1428,7 +1428,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn"
 version = "3.0.0-pre.2"
-source = "git+https://github.com/virto-network/frame-contrib?rev=a6bb2557c60c52f86b7ce59a6d76d678fd71a526#a6bb2557c60c52f86b7ce59a6d76d678fd71a526"
+source = "git+https://github.com/virto-network/frame-contrib?rev=4d16b1e196621a62f48ca8f1a8fea1ae7807d18a#4d16b1e196621a62f48ca8f1a8fea1ae7807d18a"
 dependencies = [
  "fc-traits-authn-proc",
  "frame-support",
@@ -1440,7 +1440,7 @@ dependencies = [
 [[package]]
 name = "fc-traits-authn-proc"
 version = "3.0.0-pre.2"
-source = "git+https://github.com/virto-network/frame-contrib?rev=a6bb2557c60c52f86b7ce59a6d76d678fd71a526#a6bb2557c60c52f86b7ce59a6d76d678fd71a526"
+source = "git+https://github.com/virto-network/frame-contrib?rev=4d16b1e196621a62f48ca8f1a8fea1ae7807d18a#4d16b1e196621a62f48ca8f1a8fea1ae7807d18a"
 dependencies = [
  "proc-macro-crate",
  "quote",
