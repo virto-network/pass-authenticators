@@ -31,6 +31,108 @@ fn make_signature(xtc: &impl ExtrinsicContext) -> (SignedMessage<u64>, AccountId
     (message, public, signature)
 }
 
+/// What a key signs, given the message it's asked to sign.
+type Wrapping = fn(&[u8]) -> Vec<u8>;
+
+/// The same as [`make_signature`], but the key signs `signed(message)` instead of the message.
+fn make_signature_over(
+    xtc: &impl ExtrinsicContext,
+    signed: Wrapping,
+) -> (SignedMessage<u64>, AccountId, MultiSignature) {
+    let (message, public, _) = make_signature(xtc);
+    let signature = Alice::get().sign(&signed(message.message().as_ref()));
+
+    (message, public, signature.into())
+}
+
+/// What a browser wallet extension signs when it's asked to sign `message` as raw bytes.
+fn wrapped(message: &[u8]) -> Vec<u8> {
+    [b"<Bytes>".as_slice(), message, b"</Bytes>"].concat()
+}
+
+/// Wrappings of a message which aren't the one of browser wallet extensions.
+const WRONG_WRAPPINGS: [(&str, Wrapping); 6] = [
+    ("not closed", |m| [b"<Bytes>".as_slice(), m].concat()),
+    ("not opened", |m| [m, b"</Bytes>".as_slice()].concat()),
+    ("other case", |m| {
+        [b"<bytes>".as_slice(), m, b"</bytes>"].concat()
+    }),
+    ("swapped tags", |m| {
+        [b"</Bytes>".as_slice(), m, b"<Bytes>"].concat()
+    }),
+    ("padded", |m| {
+        [b"<Bytes> ".as_slice(), m, b" </Bytes>"].concat()
+    }),
+    ("wrapped twice", |m| wrapped(&wrapped(m))),
+];
+
+mod wrapped_message {
+    use super::*;
+    use frame::deps::sp_core::{ecdsa, ed25519};
+    use frame::deps::sp_runtime::MultiSigner;
+
+    fn message() -> SignedMessage<u64> {
+        SignedMessage {
+            context: 1,
+            challenge: [2u8; 32],
+            authority_id: [3u8; 32],
+        }
+    }
+
+    #[test]
+    fn wraps_the_message_as_wallet_extensions_do() {
+        let message = message();
+        assert_eq!(
+            message.wrapped_message().as_ref(),
+            wrapped(message.message().as_ref())
+        );
+    }
+
+    #[test]
+    fn every_key_type_signs_either_form_and_no_other() {
+        let message = message();
+        let ed25519 = ed25519::Pair::from_seed(&[1u8; 32]);
+        let ecdsa = ecdsa::Pair::from_seed(&[1u8; 32]);
+        let eth = ecdsa::KeccakPair::from_seed(&[1u8; 32]);
+
+        type Signer<'a> = (&'a str, AccountId, &'a dyn Fn(&[u8]) -> MultiSignature);
+        let signers: [Signer; 4] = [
+            ("sr25519", Alice::get().public().into(), &|m| {
+                Alice::get().sign(m).into()
+            }),
+            ("ed25519", ed25519.public().into(), &|m| {
+                ed25519.sign(m).into()
+            }),
+            (
+                "ecdsa",
+                MultiSigner::from(ecdsa.public()).into_account(),
+                &|m| ecdsa.sign(m).into(),
+            ),
+            ("eth", MultiSigner::Eth(eth.public()).into_account(), &|m| {
+                MultiSignature::Eth(eth.sign(m))
+            }),
+        ];
+
+        for (key_type, signer, sign) in signers {
+            let bare = message.message();
+            assert!(
+                message.is_signed_by(&sign(bare.as_ref()), &signer),
+                "{key_type}: bare"
+            );
+            assert!(
+                message.is_signed_by(&sign(&wrapped(bare.as_ref())), &signer),
+                "{key_type}: wrapped"
+            );
+            for (wrapping, wrap) in WRONG_WRAPPINGS {
+                assert!(
+                    !message.is_signed_by(&sign(&wrap(bare.as_ref())), &signer),
+                    "{key_type}: {wrapping}"
+                );
+            }
+        }
+    }
+}
+
 mod registration {
     use super::*;
 
@@ -71,6 +173,48 @@ mod registration {
                     signature,
                 }
             ));
+        })
+    }
+
+    #[test]
+    fn registration_works_if_attestation_signs_the_wrapped_message() {
+        new_test_ext().execute_with(|| {
+            let (message, public, signature) =
+                make_signature_over(&UserAddress::get().encode(), wrapped);
+
+            assert_ok!(Pass::register(
+                RuntimeOrigin::root(),
+                USER,
+                KeyRegistration {
+                    message,
+                    public,
+                    signature,
+                }
+            ));
+        })
+    }
+
+    #[test]
+    fn registration_fails_if_attestation_signs_a_wrong_wrapping() {
+        new_test_ext().execute_with(|| {
+            for (wrapping, wrap) in WRONG_WRAPPINGS {
+                let (message, public, signature) =
+                    make_signature_over(&UserAddress::get().encode(), wrap);
+
+                assert_eq!(
+                    Pass::register(
+                        RuntimeOrigin::root(),
+                        USER,
+                        KeyRegistration {
+                            message,
+                            public,
+                            signature,
+                        }
+                    ),
+                    Err(pallet_pass::Error::<Test>::DeviceAttestationInvalid.into()),
+                    "{wrapping}"
+                );
+            }
         })
     }
 }
@@ -156,6 +300,55 @@ mod authentication {
                     0
                 )
                 .map(|_| ()));
+        })
+    }
+
+    /// Validates a `remark` authenticated by a credential where the key signs `signed(message)`.
+    fn validate_signing(signed: Wrapping) -> Result<(), TransactionValidityError> {
+        let extrinsic_version: u8 = 0;
+        let call: RuntimeCall = frame_system::Call::remark { remark: vec![] }.into();
+
+        let (message, public, signature) = make_signature_over(
+            &TxBaseImplication((extrinsic_version, call.clone())).using_encoded(blake2_256),
+            signed,
+        );
+
+        pallet_pass::PassAuthenticate::<Test>::from(
+            public.into(),
+            KeySignature {
+                user_id: USER,
+                message,
+                signature,
+            },
+        )
+        .validate_only(
+            None.into(),
+            &call,
+            &call.get_dispatch_info(),
+            call.encoded_size(),
+            TransactionSource::External,
+            0,
+        )
+        .map(|_| ())
+    }
+
+    #[test]
+    fn authentication_works_if_credentials_sign_the_wrapped_message() {
+        new_test_ext().execute_with(|| {
+            assert_ok!(validate_signing(wrapped));
+        })
+    }
+
+    #[test]
+    fn authentication_fails_if_credentials_sign_a_wrong_wrapping() {
+        new_test_ext().execute_with(|| {
+            for (wrapping, wrap) in WRONG_WRAPPINGS {
+                assert_eq!(
+                    validate_signing(wrap),
+                    Err(InvalidTransaction::BadSigner.into()),
+                    "{wrapping}"
+                );
+            }
         })
     }
 }

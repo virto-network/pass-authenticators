@@ -1,5 +1,4 @@
 use super::*;
-use sp_runtime::traits::Verify;
 use traits_authn::UserChallengeResponse;
 
 impl<Cx: Parameter + 'static> UserChallengeResponse<Cx> for KeySignature<Cx> {
@@ -36,8 +35,8 @@ impl<Cx: Parameter> VerifyCredential<KeySignature<Cx>> for AccountId32 {
             credential.signature.encode(),
         );
         credential
-            .signature
-            .verify(credential.message.message().as_ref(), self)
+            .message
+            .is_signed_by(&credential.signature, self)
             .then_some(())
     }
 }
