@@ -81,6 +81,10 @@ mod runtime {
     type CxOf<Ch> = <Ch as Challenger>::Context;
     /// The Substrate keys authenticator, for the challenger `Ch` and the authority `AuthId`.
     ///
+    /// A key signs the [`SignedMessage`] of a registration or a signature either as it is, or
+    /// wrapped in `<Bytes>…</Bytes>`, which is what browser wallet extensions sign when they're
+    /// asked to sign raw bytes.
+    ///
     /// `W` is what verifying registrations and signatures costs, which `fc-pallet-pass` charges
     /// on top of its own weights. Bind [`DefaultWeights<Runtime>`](crate::DefaultWeights) (this
     /// crate's benchmarked weights), or [`Weights<W>`](crate::Weights) for a runtime's own run of

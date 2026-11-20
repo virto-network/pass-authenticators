@@ -1,7 +1,5 @@
 use super::*;
 
-use sp_runtime::traits::Verify;
-
 impl<Ch: Challenger, AuthId, W> From<KeyRegistration<CxOf<Ch>>> for Device<Ch, AuthId, W> {
     fn from(substrate_signature: KeyRegistration<CxOf<Ch>>) -> Self {
         Self::new(substrate_signature.public)
@@ -15,8 +13,7 @@ impl<Cx: Parameter + 'static> DeviceChallengeResponse<Cx> for KeyRegistration<Cx
             self.message.message().as_ref(),
             self.signature.encode(),
         );
-        self.signature
-            .verify(self.message.message().as_ref(), &self.public)
+        self.message.is_signed_by(&self.signature, &self.public)
     }
 
     fn used_challenge(&self) -> (Cx, Challenge) {
