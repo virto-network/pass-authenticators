@@ -20,7 +20,7 @@ and pairs with frame-contrib `2.x`; its changelog lives on that branch.
 ## [2.0.0-pre.1](https://github.com/virto-network/pass-authenticators/releases/tag/v2.0.0-pre.1)
 
 Prerelease of the `2.x` line, the first published to crates.io. It pairs with
-frame-contrib `3.0.0-pre.1` and targets polkadot-sdk `stable2606`. The changes below
+frame-contrib `3.0.0-pre.3` and targets polkadot-sdk `stable2606`. The changes below
 are relative to [`1.0.0`](https://github.com/virto-network/pass-authenticators/blob/release/frame-contrib-v2/CHANGELOG.md).
 **Device, registration and credential encodings of the WebAuthn and Substrate keys
 authenticators are unchanged.**
@@ -38,7 +38,7 @@ Published crates:
 
 ### ⚠ Breaking changes
 
-- Depend on `fc-traits-authn` and `fc-pallet-pass` `3.0.0-pre.1` from crates.io.
+- Depend on `fc-traits-authn` and `fc-pallet-pass` `3.0.0-pre.3` from crates.io.
   Among other things, frame-contrib `3.x` changes `pallet-pass` calls and storage
   (per-device call filters); see its
   [changelog](https://github.com/virto-network/frame-contrib/blob/main/CHANGELOG.md).
